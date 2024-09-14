@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'landing.css' %}"> 
+    <title>Argao Sangguniang Bayan Management Platform</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'argao_logo.jpg'%}">
+
+</head>
+
+<body>
+    <div class="logo">
+        <img class="img_logo" src="{% static 'argao_logo.jpg'%}" id="home1" alt="Logo">
+      </div>
+
+    <h1>ARGAO SANGGUNIANG BAYAN MANAGEMENT PLATFORM</h1>
+
+    <text>Improving the Locality through technology, with technology.</text>
+
+    <button class="button_signup" onclick="window.location.href='signup';" >SIGN UP</button>
+    <button class="button_login" onclick="window.location.href='login';">LOG IN</button>
+
+    <img class="img_landing" src="{% static 'landing.jpg'%}"> </img>
+    <style>
+       body{ 
+        font-family:  sans-serif;
+        font-weight: 400;
+        font-style: normal;
+        
+        }
+        .img_logo {
+                    position: absolute;
+                    top: 9px;
+                    left: 36px;
+                    width: 58px;
+                    height: 58px;
+                    border-radius: 4px;
+                    z-index: 3;
+  
+                    }
+    </style>
+</body>
+</html>

@@ -1,0 +1,113 @@
+
+
+h1 {
+  position: absolute; 
+  top: 211px; 
+  left: 79px; 
+  width: 634px; 
+  height: 168px; 
+  font-family: "Fjalla One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 56px; 
+  font-weight: 700; 
+  color: #171A1FFF; /* neutral-900 */
+}
+text {
+  position: absolute;
+  top: 346px;
+  left: 79px;
+  width: 520px;
+  font-family: Inter;
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 400;
+  color: #9095A1FF;
+  }
+
+ /*SIGN UP BUTTON CSS HERE SA LANDING*/
+.button_signup {
+ 
+  position: absolute; 
+  top: 485px; 
+  left: 94px; 
+  width: 106px; 
+  height: 36px; 
+  padding: 0 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  color: #FFFFFFFF; /* white */
+  background: #52AE77FF; /* primary-500 */
+  opacity: 1; 
+  border: none; 
+  border-radius: 4px; /* border-m */
+  cursor: pointer;
+}
+/* Hover */
+.button_signup:hover {
+  color: #FFFFFFFF; /* white */
+  background: #499B6AFF; /* primary-550 */
+}
+/* Pressed */
+.button_signup:hover:active {
+  color: #FFFFFFFF; /* white */
+  background: #41895EFF; /* primary-600 */
+}
+/* Disabled */
+.button_signup:disabled {
+  opacity: 0.4; 
+}
+
+/*LOG IN BUTTON CSS HERE SA LANDING*/
+.button_login {
+  cursor: pointer;
+  position: absolute; 
+  top: 485px; 
+  left: 251px; 
+  width: 103px; 
+  height: 36px; 
+  padding: 0 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  color: #52AE77FF; /* primary-500 */
+  background: #FFFFFFFF; /* white */
+  opacity: 1; 
+  border-radius: 4px; /* border-m */
+  border-width: 1px; 
+  border-color: #52AE77FF; /* primary-500 */
+  border-style: solid; 
+}
+/* Hover */
+.button_login :hover {
+  color: #499B6AFF; /* primary-550 */
+  background: #FFFFFFFF; /* white */
+}
+/* Pressed */
+.button_login :hover:active {
+  color: #41895EFF; /* primary-600 */
+  background: #FFFFFFFF; /* white */
+}
+/* Disabled */
+.button_login :disabled {
+  opacity: 0.4; 
+}
+
+/* Image sa LANDING */
+.img_landing {
+  position: absolute; 
+  top: 180px; 
+  left: 822px; 
+  width: 512px; 
+  height: 512px; 
+  border-radius: 8px; /* border-xl */
+}

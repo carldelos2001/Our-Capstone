@@ -1,0 +1,375 @@
+.h1_upper {
+  position: absolute; 
+  top: 91px; 
+  left: 321px; 
+  font-family: Epilogue; /* Heading */
+  font-size: 32px; 
+  line-height: 48px; 
+  font-weight: 700; 
+  color: #171A1FFF; /* neutral-900 */
+}
+.h1_lower {
+  position: absolute; 
+  top: 139px; 
+  left: 56px; 
+  font-family: Epilogue; /* Heading */
+  font-size: 32px; 
+  line-height: 48px; 
+  font-weight: 700; 
+  color: #171A1FFF; /* neutral-900 */
+}
+.img_signup {
+  position: absolute; 
+  top: 212px; 
+  left: 86px; 
+  width: 708px; 
+  height: 508px; 
+  border-radius: 0px; 
+}
+.signup {
+  position: absolute; 
+  top: 187px; 
+  left: 883px; 
+  width: 513px; 
+  height: 584px; 
+  background: #FFFFFFFF; /* white */
+  border-radius: 4px; /* border-m */
+  box-shadow: 0px 0px 1px #171a1f, 0px 0px 2px #171a1f; /* shadow-xs */
+}
+.form_upperlabel {
+    position: absolute; 
+    top: 24px; 
+    left: 199px; 
+    font-family: Epilogue; /* Heading */
+    font-size: 32px; 
+    line-height: 48px; 
+    font-weight: 700; 
+    color: #171A1FFF; /* neutral-900 */
+  
+}
+
+/*----->>>FORM FORM FORM FIRST NAME*/
+.textbox {
+  position: absolute; 
+  top: 92px; 
+  left: 28px; 
+  opacity: 1; 
+}
+
+.form_firstinput input{
+  width: 231px; 
+  height: 36px; 
+  padding-left: 12px; 
+  padding-right: 12px; 
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  background: #F3F4F6FF; /* neutral-200 */
+  border-radius: 4px; /* border-m */
+  border-width: 0px; 
+  outline: none; 
+}
+
+/* hover */
+.textbox input:hover {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+/* focused */
+.textbox input:focused {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #FFFFFFFF; /* white */
+}
+/* disabled */
+.textbox input:disabled {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+.textbox :disabled + .icon, .textbox :disabled + .icon + .icon {
+  fill: #171A1FFF; /* neutral-900 */
+}
+
+/*----->>>FORM FORM FORM LAST NAME*/
+/* Textbox 23 */
+.textbox2 {
+  position: absolute; 
+  top: 92px; 
+  left: 279px; 
+  opacity: 1; 
+}
+.form_lastinput input {
+  width: 206px; 
+  height: 36px; 
+  padding-left: 12px; 
+  padding-right: 12px; 
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  background: #F3F4F6FF; /* neutral-200 */
+  border-radius: 4px; /* border-m */
+  border-width: 0px; 
+  outline: none; 
+}
+.textbox2 .label {
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 700; 
+}
+/* hover */
+.textbox2 input:hover {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+/* focused */
+.textbox2 input:focused {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #FFFFFFFF; /* white */
+}
+/* disabled */
+.textbox2 input:disabled {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+.textbox2 :disabled + .icon, .textbox2 :disabled + .icon + .icon {
+  fill: #171A1FFF; /* neutral-900 */
+}
+
+/*EMAIL INPUTTTT*/
+/* Textbox 25 */
+.textbox3 {
+  position: absolute; 
+  top: 171px; 
+  left: 28px; 
+  opacity: 1; 
+}
+.textbox3  {
+  width: 457px; 
+  height: 36px; 
+  padding-left: 12px; 
+  padding-right: 12px; 
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  background: #F3F4F6FF; /* neutral-200 */
+  border-radius: 4px; /* border-m */
+  border-width: 0px; 
+  outline: none; 
+}
+.textbox3 .label {
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 700; 
+}
+/* hover */
+.textbox3 input:hover {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+/* focused */
+.textbox3 input:focused {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #FFFFFFFF; /* white */
+}
+/* disabled */
+.textbox3 input:disabled {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+.textbox3 :disabled + .icon, .textbox3 :disabled + .icon + .icon {
+  fill: #171A1FFF; /* neutral-900 */
+}
+/*PASSWORD INPUTTT*/
+/* Textbox 26 */
+.textbox4 {
+  position: absolute; 
+  top: 250px; 
+  left: 28px; 
+  opacity: 1; 
+}
+.textbox4  {
+  width: 457px; 
+  height: 36px; 
+  padding-left: 12px; 
+  padding-right: 34px; 
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  background: #F3F4F6FF; /* neutral-200 */
+  border-radius: 4px; /* border-m */
+  border-width: 0px; 
+  outline: none; 
+}
+.textbox4 svg {
+  position: absolute; 
+  top: 12px; 
+  right: 12px; 
+  width: 16px; 
+  height: 16px; 
+  fill: #171A1FFF; /* neutral-900 */
+}
+.textbox4 .label {
+  font-family: Inter; 
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 700; 
+}
+/* hover */
+.textbox4 input:hover {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+/* focused */
+.textbox4 input:focused {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #FFFFFFFF; /* white */
+}
+/* disabled */
+.textbox4 input:disabled {
+  color: #BDC1CAFF; /* neutral-400 */
+  background: #F3F4F6FF; /* neutral-200 */
+}
+.textbox4 :disabled + .icon, .textbox4 :disabled + .icon + .icon {
+  fill: #171A1FFF; /* neutral-900 */
+}
+
+/* SIGN UP BUTTON 2 2*/
+.button_signup2 {
+  position: absolute; 
+  top: 371px; 
+  left: 28px; 
+  width: 457px; 
+  height: 44px; 
+  padding: 0 16px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  font-family: Inter; 
+  font-size: 16px; 
+  line-height: 26px; 
+  font-weight: 400; 
+  color: #FFFFFFFF; /* white */
+  background: #52AE77FF; /* primary-500 */
+  opacity: 1; 
+  border: none; 
+  border-radius: 4px; /* border-m */
+}
+/* Hover */
+.button_signup2:hover {
+  color: #FFFFFFFF; /* white */
+  background: #499B6AFF; /* primary-550 */
+}
+/* Pressed */
+.button_signup2:hover:active {
+  color: #FFFFFFFF; /* white */
+  background: #41895EFF; /* primary-600 */
+}
+/* Disabled */
+.button_signup2:disabled {
+  opacity: 0.4; 
+}
+
+.text {
+  position: absolute; 
+  top: 329px; 
+  left: 64px; 
+  font-family: Epilogue; /* Heading */
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  color: #171A1FFF; /* neutral-900 */
+}
+/* Checkbox 1 */
+.checkbox {
+  position: absolute; 
+  top: 334px; 
+  left: 29px; 
+  opacity: 1; 
+}
+.checkbox input {
+  display: none; 
+}
+/* Outer square */
+.checkbox .outer-square {
+  width: 12px; 
+  height: 12px; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  border-radius: 2px; /* border-xs */
+  border-width: 1px; 
+}
+/* Inner square */
+.checkbox .inner-square {
+  width: 6px; 
+  height: 6px; 
+  border-radius: 0px; 
+  border-width: 1px; 
+  border-color: #565D6DFF; /* neutral-600 */
+}
+/* Check Icon */
+.checkbox svg {
+  display: none; 
+}
+/* Checkbox item */
+.checkbox label {
+  display: flex; 
+  align-items: center; 
+}
+.checkbox label:not(:first-child) {
+  margin-top: 8px; 
+}
+/* Hover */
+.checkbox label:hover .outer-square {
+  opacity: 0.4; 
+}
+/* Focused */
+.checkbox label:focus-within .outer-square {
+  box-shadow: 0px 0px 2px #52AE77; 
+}
+/* Selected */
+.checkbox input:checked + .outer-square {
+  background: #52AE77FF; /* primary-500 */
+}
+.checkbox input:checked + .outer-square svg {
+  display: block; 
+  fill: #F5FAF7FF; /* primary-100 */
+}
+/* Indeterminate */
+.checkbox input:indeterminate + .outer-square {
+  background: #FFFFFFFF; 
+}
+/* Indeterminate */
+.checkbox input:indeterminate + .inner-square {
+  background: #F5FAF7FF; /* primary-100 */
+}
+/* Disabled */
+.checkbox input:disabled + div, .checkbox input:disabled + div + span {
+  opacity: 0.4; 
+}
+/* Checkbox item 1 */
+.checkbox .checkbox-item:nth-child(1) {
+  font-family: Inter; 
+  font-size: 12px; 
+  line-height: 20px; 
+  font-weight: 400; 
+  color: #171A1FFF; /* neutral-900 */
+}
+.text2 {
+  position: absolute; 
+  top: 435px; 
+  left: 155px; 
+  font-family: Epilogue; /* Heading */
+  font-size: 14px; 
+  line-height: 22px; 
+  font-weight: 400; 
+  color: #171A1FFF; /* neutral-900 */
+}
+.text2 .text3{
+  color: #52AE77FF;
+}
