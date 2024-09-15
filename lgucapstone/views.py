@@ -106,7 +106,10 @@ def user_services(request):
     return render(request, 'user_services.html')
 def user_announcement(request):
     return render(request, 'user_announcement.html')
-
+def admin_report(request):
+    return render(request, 'admin_report.html')
+def admin_announcement(request):
+    return render(request, 'admin_announcement.html')
 # >>>> ADMIN LOG IN
 def admin_login(request):
     if request.method == 'POST':

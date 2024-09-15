@@ -114,3 +114,52 @@
   fill: #171A1FFF; /* neutral-900 */
 }
 
+/* user_resolution.css */
+.search-box-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.search_box {
+  width: 100%;
+  max-width: 500px;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+}
+
+.resolutions-list {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.card {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+.card-body {
+  padding: 1rem;
+}
+
+.btn-primary {
+  background-color: #52AE77;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #3e8e41;
+}
+
+.content-middle{
+  margin-top: 200px;
+}

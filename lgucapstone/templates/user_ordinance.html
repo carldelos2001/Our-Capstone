@@ -4,18 +4,53 @@
   {% load static %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
- 
-  <link rel="stylesheet" type="text/css" href="{% static 'user_ordinance.css' %}"> 
+
+  <link rel="stylesheet" type="text/css" href="{% static 'user_ordinance1.css' %}"> 
   
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <title>Argao-LGU-Ordinances</title>
   <link rel="icon" type="image/jpeg" href="{% static 'argao_logo.jpg'%}">
+
+  <style>
+    .search_box1 {
+      display: flex;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .search_box {
+      width: 60%;
+      padding: 10px;
+      border-radius: 30px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+
+    .ordinances-list {
+      margin-top: 20px;
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .btn-primary {
+      background-color: #52AE77;
+      border-color: #52AE77;
+    }
+
+    .btn-primary:hover {
+      background-color: #469961;
+      border-color: #469961;
+    }
+  </style>
 </head>
 <body>
   <div class="container_nav"></div>
   
   <div class="logo">
-    <img class="img_logo" src="{% static 'argao_logo.jpg'%}" id="home1" alt="Logo">
+    <img class="img_logo" src="{% static 'argao_logo.jpg' %}" id="home1" alt="Logo">
   </div>
 
   <div class="nav_bar">
@@ -25,34 +60,105 @@
     <label class="header-menu-item" id="services">Services</label>
     <label class="header-menu-item" id="announcement">Announcement</label>
   </div>
-
+  <div class="content-middle">
   <!-- Search Box -->
   <label class="search_box1">
-    <input class="search_box" type="search" placeholder="Search Ordinances...">
+    <input class="search_box" type="search" placeholder="Search Ordinances..." id="search-box">
   </label>
 
   <!-- Ordinances List -->
   <div class="ordinances-list">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Year</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for key, ordinance in ordinances.items %}
-        <tr>
-          <td>{{ ordinance.title }}</td>
-          <td>{{ ordinance.year }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div id="ordinances-container" class="row">
+      <!-- Ordinance Cards will be inserted here dynamically -->
+    </div>
   </div>
-
+</div>
   <script src="{% static 'user_ordinance.js' %}"></script>
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-app.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAMwvUHsWFkTmJyfzuh4DxzOrMYEjcXHvI",
+      authDomain: "lgucapstoneproject-b94fe.firebaseapp.com",
+      databaseURL: "https://lgucapstoneproject-b94fe-default-rtdb.firebaseio.com",
+      projectId: "lgucapstoneproject-b94fe",
+      storageBucket: "lgucapstoneproject-b94fe.appspot.com",
+      messagingSenderId: "984934888272",
+      appId: "1:984934888272:web:e835b8e02ae708629a7255"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const ordinancesContainer = document.getElementById('ordinances-container');
+    let allOrdinances = {}; // To store the original fetched ordinances
+
+    function fetchOrdinances() {
+      const ordinancesRef = ref(db, 'ordinances');
+      get(ordinancesRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          allOrdinances = snapshot.val(); // Store all ordinances globally
+          displayOrdinances(allOrdinances); // Display all ordinances initially
+        } else {
+          ordinancesContainer.innerHTML = '<p>No ordinances found.</p>';
+        }
+      }).catch((error) => {
+        console.error('Error fetching ordinances:', error);
+        ordinancesContainer.innerHTML = '<p>Error fetching ordinances. Please try again later.</p>';
+      });
+    }
+
+    // Display ordinances based on input data
+    function displayOrdinances(ordinances) {
+      ordinancesContainer.innerHTML = ''; // Clear previous content
+
+      Object.values(ordinances).forEach((ordinance) => {
+        const ordinanceContent = ordinance.content ? ordinance.content.substring(0, 100) : 'No content available';
+        
+        const ordinanceCard = `
+          <div class="col-12 mb-4">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title">${ordinance.title}</h5>
+                <p class="card-text"><strong>Published/Approved:</strong> ${ordinance.date_approved}</p>
+                <p class="card-text">${ordinanceContent}...</p>
+                <a href="${ordinance.document_url}" class="btn btn-primary">Read More</a>
+              </div>
+            </div>
+          </div>
+        `;
+
+        ordinancesContainer.innerHTML += ordinanceCard;
+      });
+    }
+
+    // Search functionality: Filter ordinances
+    function filterOrdinances(query) {
+      const filteredOrdinances = {};
+      Object.keys(allOrdinances).forEach((key) => {
+        const ordinance = allOrdinances[key];
+        const title = ordinance.title ? ordinance.title.toLowerCase() : '';
+        const content = ordinance.content ? ordinance.content.toLowerCase() : '';
+
+        if (title.includes(query) || content.includes(query)) {
+          filteredOrdinances[key] = ordinance;
+        }
+      });
+      displayOrdinances(filteredOrdinances);
+    }
+
+    // Event listener for search input
+    document.getElementById('search-box').addEventListener('input', function() {
+      const query = this.value.toLowerCase();
+      filterOrdinances(query);
+    });
+
+    // Fetch ordinances on page load
+    document.addEventListener('DOMContentLoaded', function() {
+      fetchOrdinances();
+    });
+
     document.getElementById('home1').addEventListener('click', function() {
       window.location.href = '/home';
     });

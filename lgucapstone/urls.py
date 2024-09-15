@@ -17,4 +17,6 @@ urlpatterns = [
     path('admin_dash', views.admin_dash, name='admin_dash'),
     path('account_settings', views.account_settings, name='account_settings'),
     path('add_ordinance_resolution', views.add_ordinance_resolution, name='add_ordinance_resolution'),
+    path('admin_report', views.admin_report, name='admin_report'),
+    path('admin_announcement', views.admin_announcement, name='admin_announcement'),
 ]

@@ -15,53 +15,164 @@
   <link rel="stylesheet" href="{% static 'style.css' %}">
 
   <title>Dashboard</title>
+  <style>
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 250px;
+      background-color: #f8f9fa;
+      padding-top: 20px;
+      border-right: 1px solid #ddd;
+    }
+    
+    .sidebar .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .sidebar .logo img {
+      width: 100px;
+      border-radius: 50%;
+    }
+    
+    .sidebar .nav-item {
+      padding: 15px 20px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .sidebar .nav-item:hover {
+      background-color: #e9ecef;
+      cursor: pointer;
+    }
+    
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+    
+    .user-profile {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      z-index: 10; /* Ensure it's on top */
+    }
+    
+    .user-profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .fixed-search-box {
+      display: flex;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .search-container {
+      margin-left: 20px;
+      flex: 1;
+    }
+
+    .card-body canvas {
+      max-height: 400px; /* Adjust height to prevent overlap */
+    }
+
+    .pie-chart-container {
+      display: flex;
+      justify-content: center;
+    }
+
+    .pie-chart-container .card-body {
+      padding: 4rem;
+    }
+
+    .results-table {
+      margin-top: 20px;
+    }
+    .btn.btn.btn-success{
+      margin-top: 20px;
+    }
+  </style>
 </head>
 <body>
   
-  <div class="container mt-5">
-    <!-- Header Section -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h1 class="h1_upper">Ordinance and Resolution Dashboard</h1>
-      <button class="btn btn-success" onclick="window.location.href='{% url 'add_ordinance_resolution' %}'">Add Ordinance/Resolution</button>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{% static 'argao_logo.jpg' %}" alt="Logo">
     </div>
+    <div class="nav-item" onclick="window.location.href='/admin_dash'">Dashboard</div>
+    <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
+    <div class="nav-item" onclick="window.location.href='/user_resolution'">Services</div>
+    <div class="nav-item" onclick="window.location.href='/user_services'">Feedbacks</div>
+    <div class="nav-item" onclick="window.location.href='/user_announcement'">Announcement</div>
+    <div class="nav-item" onclick="window.location.href='/user_announcement'">Attendance</div>
+  </div>
 
-    <!-- Search Box -->
-    <div class="input-group mb-4">
-      <input type="text" class="form-control" placeholder="Search Ordinance/Resolution" id="search-box">
-      <button class="btn btn-primary" type="button" id="search-button">Search</button>
-    </div>
-
+  <!-- User Profile -->
+  <div class="user-profile">
+    <img src="{% static 'user_profile.png' %}" alt="User Profile">
+    <span class="ms-2">User Name</span>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main-content">
     <!-- Charts Section -->
     <div class="row">
       <div class="col-md-6">
-        <canvas id="barChart"></canvas>
+        <div class="card">
+          <div class="card-body">
+            <h5>Ordinance and Resolution Dashboard</h5>
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
       </div>
-      <div class="col-md-6">
-        <canvas id="pieChart" width="300" height="300"></canvas>
+      <div class="col-md-6 pie-chart-container">
+        <div class="card">
+          <div class="card-body">
+            <canvas id="pieChart" width="250" height="250"></canvas>
+            <h5>Current Ordinances and Resolutions</h5>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Current Ordinances and Resolutions Section -->
-    <div class="mt-5">
-      <h2>Current Ordinances and Resolutions</h2>
-      <div id="ordinances-list">
-        {% for ordinance in ordinances %}
-          <div class="card mb-3">
-            <div class="card-body">
-              <h5 class="card-title">{{ ordinance.title }}</h5>
-              <p class="card-text">{{ ordinance.description }}</p>
-              <a href="{% url 'ordinance_detail' ordinance.id %}" class="btn btn-primary">View Details</a>
-            </div>
-          </div>
-        {% endfor %}
+    <!-- Add Ordinance/Resolution Button and Search Box -->
+    <div class="d-flex justify-content-start align-items-center mt-4">
+      <button class="btn btn-success" onclick="window.location.href='{% url 'add_ordinance_resolution' %}'">Add Ordinance/Resolution</button>
+      <div class="fixed-search-box search-container">
+        <input type="text" class="form-control" placeholder="Search Ordinance/Resolution" id="search-box">
+        <button class="btn btn-primary" type="button" id="search-button">Search</button>
       </div>
+    </div>
+
+    <!-- Search Results Table -->
+    <div class="results-table mt-5">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="results-container">
+          <!-- Search results will be injected here -->
+        </tbody>
+      </table>
     </div>
   </div>
 
   <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAMwvUHsWFkTmJyfzuh4DxzOrMYEjcXHvI",
@@ -77,49 +188,49 @@
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
+    
     // Function to parse the month from a date string (YYYY-MM-DD)
     function getMonthFromDate(dateStr) {
       const date = new Date(dateStr);
       return date.getMonth(); // Returns 0 for January, 1 for February, etc.
     }
 
-    // Fetch and Update Bar Chart Data
-function fetchBarChartData() {
-  const ordinancesRef = ref(db, 'ordinances');
-  const resolutionsRef = ref(db, 'resolutions');
+     // Fetch and Update Bar Chart Data
+     function fetchBarChartData() {
+      const ordinancesRef = ref(db, 'ordinances');
+      const resolutionsRef = ref(db, 'resolutions');
 
-  Promise.all([get(ordinancesRef), get(resolutionsRef)])
-    .then(([ordinancesSnapshot, resolutionsSnapshot]) => {
-      const ordinancesData = ordinancesSnapshot.val() || {};
-      const resolutionsData = resolutionsSnapshot.val() || {};
+      Promise.all([get(ordinancesRef), get(resolutionsRef)])
+        .then(([ordinancesSnapshot, resolutionsSnapshot]) => {
+          const ordinancesData = ordinancesSnapshot.val() || {};
+          const resolutionsData = resolutionsSnapshot.val() || {};
 
-      const ordinanceCounts = new Array(12).fill(0); // Initialize counts for ordinances by month
-      const resolutionCounts = new Array(12).fill(0); // Initialize counts for resolutions by month
+          const ordinanceCounts = new Array(12).fill(0); // Initialize counts for ordinances by month
+          const resolutionCounts = new Array(12).fill(0); // Initialize counts for resolutions by month
 
-      // Process each ordinance and increment the count for the month it was approved
-      Object.values(ordinancesData).forEach(ordinance => {
-        const monthIndex = getMonthFromDate(ordinance.date_approved);
-        ordinanceCounts[monthIndex]++;
-      });
+          // Process each ordinance and increment the count for the month it was approved
+          Object.values(ordinancesData).forEach(ordinance => {
+            const monthIndex = getMonthFromDate(ordinance.date_approved);
+            ordinanceCounts[monthIndex]++;
+          });
 
-      // Process each resolution and increment the count for the month it was approved
-      Object.values(resolutionsData).forEach(resolution => {
-        const monthIndex = getMonthFromDate(resolution.date_approved);
-        resolutionCounts[monthIndex]++;
-      });
+          // Process each resolution and increment the count for the month it was approved
+          Object.values(resolutionsData).forEach(resolution => {
+            const monthIndex = getMonthFromDate(resolution.date_approved);
+            resolutionCounts[monthIndex]++;
+          });
 
-      // Update Bar Chart with both ordinances and resolutions data
-      barChart.data.datasets[0].data = ordinanceCounts; // Update the ordinances dataset
-      barChart.data.datasets[1].data = resolutionCounts; // Update the resolutions dataset
-      barChart.update();
-    })
-    .catch(error => {
-      console.error('Error fetching bar chart data: ', error);
-    });
-}
+          // Update Bar Chart with both ordinances and resolutions data
+          barChart.data.datasets[0].data = ordinanceCounts; // Update the ordinances dataset
+          barChart.data.datasets[1].data = resolutionCounts; // Update the resolutions dataset
+          barChart.update();
+        })
+        .catch(error => {
+          console.error('Error fetching bar chart data: ', error);
+        });
+    }
 
-    // Fetch and Update Pie Chart Data
+        // Fetch and Update Pie Chart Data
     function fetchPieChartData() {
       const ordinancesRef = ref(db, 'ordinances');
       const resolutionsRef = ref(db, 'resolutions');
@@ -147,6 +258,71 @@ function fetchBarChartData() {
       fetchBarChartData();
       fetchPieChartData();
     });
+
+    // Fetch Data from Firebase
+    function fetchData() {
+      const ordinancesRef = ref(db, 'ordinances');
+      const resolutionsRef = ref(db, 'resolutions');
+
+      Promise.all([get(ordinancesRef), get(resolutionsRef)])
+        .then(([ordinancesSnapshot, resolutionsSnapshot]) => {
+          const ordinancesData = ordinancesSnapshot.val() || {};
+          const resolutionsData = resolutionsSnapshot.val() || {};
+
+          // Combine both data sets
+          window.allData = { ...ordinancesData, ...resolutionsData };
+
+          // Display all data initially or on a default search
+          displayResults(window.allData);
+        })
+        .catch((error) => {
+          console.error('Error fetching data:', error);
+        });
+    }
+
+    function displayResults(data) {
+      const resultsContainer = document.getElementById('results-container');
+      resultsContainer.innerHTML = ''; // Clear previous results
+      Object.values(data).forEach((item) => {
+        const row = `
+          <tr>
+            <td>${item.title || 'No Title'}</td>
+            <td>${item.description || 'No Description'}</td>
+            <td>
+              <a href="${item.document_url || '#'}" class="btn btn-primary btn-sm">View</a>
+              <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
+              <a href="${item.document_url || '#'}" class="btn btn-info btn-sm">Open</a>
+            </td>
+          </tr>
+        `;
+        resultsContainer.innerHTML += row;
+      });
+    }
+
+    function search() {
+      const query = document.getElementById('search-box').value.toLowerCase();
+      const filteredData = {};
+      Object.keys(window.allData).forEach((key) => {
+        const item = window.allData[key];
+        if (
+          (item.title && item.title.toLowerCase().includes(query)) ||
+          (item.description && item.description.toLowerCase().includes(query))
+        ) {
+          filteredData[key] = item;
+        }
+      });
+      displayResults(filteredData);
+    }
+
+    document.getElementById('search-button').addEventListener('click', search);
+
+    // Fetch Data on Page Load
+    document.addEventListener('DOMContentLoaded', fetchData);
+    
+    // Dummy delete function
+    function deleteItem(id) {
+      console.log('Delete item with id:', id);
+    }
   </script>
 
   <!-- Chart.js Script -->
@@ -207,7 +383,7 @@ function fetchBarChartData() {
       },
       options: {
         responsive: true,
-        cutout: '80%',  
+        cutout: '70%',  
         plugins: {
           legend: {
             position: 'bottom', 
@@ -215,7 +391,7 @@ function fetchBarChartData() {
         }
       }
     });
-</script>
+  </script>
 
 </body>
 </html>
