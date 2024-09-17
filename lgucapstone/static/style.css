@@ -305,6 +305,20 @@ select {
   word-wrap: normal;
 }
 
+
+
+.table th, .table td {
+  text-align: center;
+}
+
+.table {
+  margin-top: 20px;
+}
+
+
+
+
+
 button,
 [type=button],
 [type=reset],

@@ -11,16 +11,17 @@
 </head>
 <body>
   <div class="logo">
-    <img class="img_logo" src="{% static 'argao_logo.jpg'%}" id="home1" alt="Logo">
+    <img class="img_logo" src="{% static 'argao_logo.jpg' %}" id="home1" alt="Logo">
   </div>
 
-  <h1 class="h1_upper"> ARGAO-LGU </h1>
+  <h1 class="h1_upper">ARGAO-LGU</h1>
   <h1 class="h1_lower">SANGGUNIANG BAYAN MANAGEMENT PLATFORM</h1>
   
   <img class="img_signup" src="{% static 'landing.jpg' %}" alt="Landing Image">
 
   <div class="sign_container">
-    <form class="signup" method="post" action="{% url 'signup' %}">
+    <!-- Step 1: Collect User Details -->
+    <form class="signup" method="post" id="signup-form">
       {% csrf_token %}
       <label class="form_upperlabel">SIGN UP</label>
       
@@ -51,20 +52,201 @@
         <label class="text2"> Already have an account? <a href="{% url 'login' %}" class="text3">Log In</a></label>
       </div>
     </form>
-
-    
   </div>
+
+  <!-- OTP Modal Popup -->
+  <div class="otp-container">
+    <div class="otp-modal" id="otp-modal" style="display: none;">
+      <div class="otp-popup">
+        <form class="otp-form" method="post" id="otp-form">
+          {% csrf_token %}
+          <label class="form_lowerlabel">VERIFY OTP</label>
+          
+          <div class="form_otpinput">
+            <input class="textbox10" type="text" name="otp" placeholder="Enter OTP" required>
+          </div>
+          
+          <button class="button_signup10" type="submit">Verify OTP</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  
   <style>
     .img_logo {
-              position: absolute;
-              top: 9px;
-              left: 36px;
-              width: 58px;
-              height: 58px;
-              border-radius: 4px;
-              z-index: 3;
+      position: absolute;
+      top: 9px;
+      left: 36px;
+      width: 58px;
+      height: 58px;
+      border-radius: 4px;
+      z-index: 3;
+    }
+
+    /* Modal Styles */
+    /* Container to center the OTP modal */
+.otp-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   
-              }
+}
+
+.otp-modal {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.otp-popup {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+}
+
+.otp-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form_lowerlabel {
+  font-size: 18px;
+  margin-bottom: 15px;
+  font-weight: bold;
+}
+
+.form_otpinput {
+  margin-bottom: 20px;
+}
+
+.textbox10 {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.button_signup10 {
+  background-color: #52AE77; /* Use your desired button color */
+  color: #fff;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.button_signup10:hover {
+  background-color: #4a9d6d; /* Slightly darker shade for hover effect */
+}
+
+    .button_signup2 {
+      width: 100%;
+      width: 458px;
+      padding: 10px;
+      background-color: #52AE77; /* Custom button color */
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .button_signup2:hover {
+      background-color: #469966; /* Darker green on hover */
+    }
+
+    /* Add a box-like design similar to the signup form */
+   
   </style>
+
+  <script>
+    document.getElementById('signup-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+      
+      // Manually retrieve form values
+      const firstName = document.querySelector('input[name="first_name"]').value;
+      const lastName = document.querySelector('input[name="last_name"]').value;
+      const email = document.querySelector('input[name="email"]').value;
+      const password = document.querySelector('input[name="password"]').value;
+
+      // Send form data to server to request OTP
+      try {
+        const response = await fetch('{% url "send_otp" %}', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            first_name: firstName,
+            last_name: lastName,
+            email: email,
+            password: password
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.success) {
+            // Hide the sign-up form and show the OTP modal popup
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('otp-modal').style.display = 'flex';
+          } else {
+            alert('Failed to send OTP');
+          }
+        } else {
+          alert('Server error: ' + response.statusText);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while sending the OTP');
+      }
+    });
+
+    document.getElementById('otp-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      // Manually retrieve OTP
+      const otp = document.querySelector('input[name="otp"]').value;
+      const password = document.querySelector('input[name="password"]').value;
+
+      // Send OTP and password to server for verification
+      try {
+        const response = await fetch('{% url "verify_otp" %}', {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            otp: otp,
+            password: password,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          if (data.success) {
+            // Redirect or show success message
+            window.location.href = "{% url 'login' %}";  // Adjust the redirect URL
+          } else {
+            alert('OTP verification failed');
+          }
+        } else {
+          alert('Server error: ' + response.statusText);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred while verifying the OTP');
+      }
+    });
+  </script>
 </body>
 </html>

@@ -111,8 +111,8 @@
     <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
     <div class="nav-item" onclick="window.location.href='/user_resolution'">Services</div>
     <div class="nav-item" onclick="window.location.href='/user_services'">Feedbacks</div>
-    <div class="nav-item" onclick="window.location.href='/user_announcement'">Announcement</div>
-    <div class="nav-item" onclick="window.location.href='/user_announcement'">Attendance</div>
+    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Announcement</div>
+    <div class="nav-item" onclick="window.location.href='/admin_attendance'">Attendance</div>
   </div>
 
   <!-- User Profile -->
@@ -145,7 +145,7 @@
 
     <!-- Add Ordinance/Resolution Button and Search Box -->
     <div class="d-flex justify-content-start align-items-center mt-4">
-      <button class="btn btn-success" onclick="window.location.href='{% url 'add_ordinance_resolution' %}'">Add Ordinance/Resolution</button>
+      <button class="btn btn-success" onclick="window.location.href='/add_ordinance_resolution'">Add Ordinance/Resolution</button>
       <div class="fixed-search-box search-container">
         <input type="text" class="form-control" placeholder="Search Ordinance/Resolution" id="search-box">
         <button class="btn btn-primary" type="button" id="search-button">Search</button>

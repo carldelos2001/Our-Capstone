@@ -5,7 +5,14 @@ from django.contrib import messages
 from .forms import OrdinanceResolutionForm
 from .firebase_config import firebase_db, storage
 from firebase_admin import storage, credentials, db
+from django.core.mail import send_mail
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 
+
+import random
+import string
 import firebase_admin
 import pyrebase
 import json
@@ -31,6 +38,10 @@ database = firebase.database()
 
 
 def home(request):
+    user = request.user
+    context = {
+        'first_name': user.first_name,
+    }
     return render(request,'home.html')
 
 def lgucapstone(request):
@@ -110,6 +121,10 @@ def admin_report(request):
     return render(request, 'admin_report.html')
 def admin_announcement(request):
     return render(request, 'admin_announcement.html')
+def admin_attendance(request):
+    return render(request, 'admin_attendance.html')
+def user_forgotpass(request):
+    return render(request, 'user_forgotpass.html')
 # >>>> ADMIN LOG IN
 def admin_login(request):
     if request.method == 'POST':
@@ -267,3 +282,224 @@ def ordinances_view(request):
     }
     
     return render(request, 'user_ordinance.html', context)
+
+
+def generate_otp():
+    return ''.join(random.choices(string.digits, k=6))
+
+
+@csrf_exempt
+def send_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')  # Retrieve email from the request body
+
+            if not email:
+                return JsonResponse({'success': False, 'message': 'Email is required'}, status=400)
+
+            otp = generate_otp()  # Generate your OTP here
+
+            request.session['otp'] = otp
+            request.session['otp_email'] = email
+
+            # Send email with OTP
+            send_mail(
+                'Your OTP Code',
+                f'Your OTP code is {otp}.',
+                'stevendelosreyes123@gmail.com',
+                [email],  # Send OTP to the retrieved email
+                fail_silently=False,
+            )
+
+            return JsonResponse({'success': True})
+
+        except Exception as e:
+            print(f'Error: {e}')
+            return JsonResponse({'success': False, 'message': 'Error sending OTP'}, status=500)
+
+@csrf_exempt
+def verify_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            otp = data.get('otp')
+            password = data.get('password')
+
+            # Check OTP from session
+            session_otp = request.session.get('otp')
+            email = request.session.get('otp_email')
+
+            # Debugging after retrieving session variables
+            print(f'OTP: {otp}, Password: {password}')  # Debugging
+            print(f"Session OTP: {session_otp}, Session Email: {email}")
+
+            if not otp or not password:
+                return JsonResponse({'success': False, 'message': 'OTP and password are required'}, status=400)
+
+            if otp == str(session_otp):
+                # OTP is correct, create Firebase user
+                user = authe.create_user_with_email_and_password(email, password)
+                
+                # Store user in Firebase database
+                user_id = user['localId']
+                data = {
+                    "email": email,
+                    "role": "user"  # Automatically mark as "user"
+                }
+                database.child("users").child(user_id).set(data)
+
+                # Clear OTP from session
+                del request.session['otp']
+                del request.session['otp_email']
+
+                return JsonResponse({'success': True})
+
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid OTP'}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format'}, status=400)
+        except Exception as e:
+            print(f'Error: {e}')
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@csrf_exempt
+def send_login_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            password = data.get('password')
+
+            if not email or not password:
+                return JsonResponse({'success': False, 'message': 'Email and password are required'}, status=400)
+
+            try:
+                # Authenticate user
+                user = authe.sign_in_with_email_and_password(email, password)
+
+                # Generate OTP and store it in session
+                otp = generate_otp()
+                request.session['login_otp'] = otp
+                request.session['login_email'] = email
+
+                # Send OTP via email
+                send_mail(
+                    'Your Login OTP Code',
+                    f'Your OTP code is {otp}.',
+                    'stevendelosreyes123@gmail.com',
+                    [email],
+                    fail_silently=False,
+                )
+
+                return JsonResponse({'success': True})
+
+            except Exception as e:
+                print(f'Error: {e}')
+                return JsonResponse({'success': False, 'message': 'Authentication failed'}, status=400)
+
+        except Exception as e:
+            print(f'Error: {e}')
+            return JsonResponse({'success': False, 'message': 'Error sending OTP'}, status=500)
+
+@csrf_exempt
+def verify_login_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            otp = data.get('otp')
+
+            # Check OTP from session
+            session_otp = request.session.get('login_otp')
+            email = request.session.get('login_email')
+
+            if not otp:
+                return JsonResponse({'success': False, 'message': 'OTP is required'}, status=400)
+
+            if otp == str(session_otp):
+                # OTP is correct
+                # You can now log the user in or redirect them to a secure area
+                # For example, you might create a session for the user here
+
+                # Clear OTP from session
+                del request.session['login_otp']
+                del request.session['login_email']
+
+                return JsonResponse({'success': True})
+
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid OTP'}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format'}, status=400)
+        except Exception as e:
+            print(f'Error: {e}')
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+@csrf_exempt
+def send_forgot_password_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')  # Retrieve email from the request body
+
+            if not email:
+                return JsonResponse({'success': False, 'message': 'Email is required'}, status=400)
+
+            otp = generate_otp()  # Generate OTP
+
+            request.session['forgot_password_otp'] = otp
+            request.session['forgot_password_email'] = email
+
+            # Send email with OTP
+            send_mail(
+                'Your Password Reset OTP Code',
+                f'Your OTP code is {otp}.',
+                'stevendelosreyes123@gmail.com',
+                [email],  # Send OTP to the retrieved email
+                fail_silently=False,
+            )
+
+            return JsonResponse({'success': True})
+
+        except Exception as e:
+            print(f'Error: {e}')
+            return JsonResponse({'success': False, 'message': 'Error sending OTP'}, status=500)
+
+@csrf_exempt
+def reset_password_with_otp(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            otp = data.get('otp')
+            new_password = data.get('new_password')
+
+            # Check OTP from session
+            session_otp = request.session.get('forgot_password_otp')
+            email = request.session.get('forgot_password_email')
+
+            if not otp or not new_password:
+                return JsonResponse({'success': False, 'message': 'OTP and new password are required'}, status=400)
+
+            if otp == str(session_otp):
+                # OTP is correct, reset the password
+                user = authe.sign_in_with_email_and_password(email, new_password)  # Sign in to confirm email
+
+                # Reset password functionality is not directly supported, so you need to update it manually or use a different approach
+                # For Firebase, you might need to use Firebase Admin SDK for this functionality.
+
+                # Clear OTP from session
+                del request.session['forgot_password_otp']
+                del request.session['forgot_password_email']
+
+                return JsonResponse({'success': True})
+
+            else:
+                return JsonResponse({'success': False, 'message': 'Invalid OTP'}, status=400)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format'}, status=400)
+        except Exception as e:
+            print(f'Error: {e}')
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
