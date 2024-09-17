@@ -33,16 +33,20 @@ firebase=pyrebase.initialize_app(config)
 authe = firebase.auth()
 database = firebase.database()
 
+authe = pyrebase.initialize_app(config).auth()
+database = pyrebase.initialize_app(config).database()
+
 
 
 
 
 def home(request):
-    user = request.user
+    first_name = request.session.get('first_name', 'Guest')
     context = {
-        'first_name': user.first_name,
+        'first_name': first_name,
     }
-    return render(request,'home.html')
+    return render(request, 'home.html', context)
+
 
 def lgucapstone(request):
     return render(request, 'landing.html')
@@ -50,6 +54,8 @@ def lgucapstone(request):
 # -->>>> USER SIGN UP 
 def signup(request):
     if request.method == 'POST':
+        firstname = request.POST.get('first_name')
+        lastname = request.POST.get('last_name')
         email = request.POST.get('email')
         password = request.POST.get('password')
         
@@ -62,18 +68,20 @@ def signup(request):
             
             # Set the user's role to "user" in the Firebase Realtime Database
             data = {
+                "firstname": firstname,
+                "lastname": lastname,
                 "email": email,
                 "role": "user"  # Automatically mark as "user"
             }
             database.child("users").child(user_id).set(data)
             
             # Redirect to login page or another page after successful sign-up
-            return redirect('login')  # Replace with your login route
+            return redirect('login') 
         except Exception as e:
             print(f"Error: {e}")  # Print the error for debugging
             messages.error(request, str(e))  # Display the error message to the user
 
-    return render(request, 'signup.html')  # Replace with your sign-up template
+    return render(request, 'signup.html')  
 
 
 
@@ -84,12 +92,18 @@ def login(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
-        
+
         try:
             # Authenticate the user with Firebase Authentication
             user = authe.sign_in_with_email_and_password(email, password)
-            
-            # If authentication is successful, redirect to home
+            user_info = authe.get_account_info(user['idToken'])
+            first_name = user_info['users'][0].get('displayName', 'Guest')
+
+            # Store user details in session
+            request.session['first_name'] = first_name
+            request.session['email'] = email
+            request.session['user_id'] = user_id
+            # Redirect to home after successful login
             return redirect('home')
 
         except Exception as e:
@@ -104,10 +118,57 @@ def login(request):
             elif error_message == 'USER_DISABLED':
                 messages.error(request, 'This account has been disabled. Please contact support.')
             else:
-                # A fallback for any other unknown errors
+                
                 messages.error(request, 'Please check your email and password.')
 
     return render(request, 'login.html')
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
+def get_user_info(request):
+    if request.method == 'GET':
+        try:
+            user_id = request.session.get('user_id')
+            logger.debug(f'User ID from session: {user_id}')  # Log the user_id
+            
+            if not user_id:
+                return JsonResponse({'error': 'User not logged in'}, status=401)
+
+            user_ref = db.reference(f"users/{user_id}")
+            user_info = user_ref.get()
+
+            if not user_info:
+                return JsonResponse({'error': 'User not found'}, status=404)
+
+            return JsonResponse(user_info)
+        except Exception as e:
+            logger.error(f'Error fetching user info: {e}')  # Log the error
+            return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def update_user_info(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = request.session.get('user_id')
+            if not user_id:
+                return JsonResponse({'success': False, 'message': 'User not logged in'}, status=401)
+
+            user_ref = db.reference(f"users/{user_id}")
+            user_ref.update(data)
+            
+            return JsonResponse({'success': True})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+
 
 def user_ordinance(request):
     return render(request,'user_ordinance.html')
@@ -125,6 +186,9 @@ def admin_attendance(request):
     return render(request, 'admin_attendance.html')
 def user_forgotpass(request):
     return render(request, 'user_forgotpass.html')
+def admin_promanage(request):
+    return render(request, 'admin_projectmanagement.html')
+
 # >>>> ADMIN LOG IN
 def admin_login(request):
     if request.method == 'POST':
@@ -133,27 +197,28 @@ def admin_login(request):
         
         try:
             # Authenticate the user with Firebase Authentication
-            admin = authe.sign_in_with_email_and_password(email, password)
+            user = authe.sign_in_with_email_and_password(email, password)
             
-            # Check if the user is successfully authenticated
-            if admin:
-                # Retrieve the authenticated user's email
-                admin_email = email  # Use the email from the login attempt
+            # Retrieve the authenticated user's email
+            admin_email = email  
+            
+            # Check the role of the authenticated user in the "admin" path
+            user_role = database.child("admin").order_by_child("email").equal_to(admin_email).get().val()
+            
+            # Check if the user role is "admin"
+            if user_role and next(iter(user_role.values()))['role'] == "admin":
+                return redirect('admin_dash')  
+            else:
+                messages.error(request, "You do not have admin access.")
                 
-                # Check the role of the authenticated user in the "admin" path
-                user_role = database.child("admin").order_by_child("email").equal_to(admin_email).get().val()
-                
-                # Check if the user role is "admin"
-                if user_role and next(iter(user_role.values()))['role'] == "admin":
-                    return redirect('admin_dash')  # Replace with your admin dashboard route
-                else:
-                    messages.error(request, "You do not have admin access.")
-                    authe.sign_out()  # Sign out the user if they are not an admin
+            
+                return redirect('admin_login')  # Redirect back to login
+            
         except Exception as e:
-            print(f"Error: {e}")  # Print the error for debugging
-           
-
-    return render(request, 'adminlog.html')  # Replace with your admin login template
+            print(f"Error: {e}")  
+            messages.error(request, "Invalid login credentials.")
+    
+    return render(request, 'adminlog.html')  
 
 def admin_dash(request):
     return render(request, 'admindash.html')
@@ -293,15 +358,17 @@ def send_otp(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            email = data.get('email')  # Retrieve email from the request body
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            password = data.get('password')
 
-            if not email:
-                return JsonResponse({'success': False, 'message': 'Email is required'}, status=400)
-
-            otp = generate_otp()  # Generate your OTP here
-
+            # Generate OTP (example code)
+            otp = generate_otp()  # Implement OTP generation
             request.session['otp'] = otp
             request.session['otp_email'] = email
+            request.session['first_name'] = first_name
+            request.session['last_name'] = last_name
 
             # Send email with OTP
             send_mail(
@@ -314,9 +381,12 @@ def send_otp(request):
 
             return JsonResponse({'success': True})
 
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'message': 'Invalid JSON format'}, status=400)
         except Exception as e:
             print(f'Error: {e}')
-            return JsonResponse({'success': False, 'message': 'Error sending OTP'}, status=500)
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
 
 @csrf_exempt
 def verify_otp(request):
@@ -331,7 +401,7 @@ def verify_otp(request):
             email = request.session.get('otp_email')
 
             # Debugging after retrieving session variables
-            print(f'OTP: {otp}, Password: {password}')  # Debugging
+            print(f'OTP: {otp}, Password: {password}')
             print(f"Session OTP: {session_otp}, Session Email: {email}")
 
             if not otp or not password:
@@ -343,15 +413,19 @@ def verify_otp(request):
                 
                 # Store user in Firebase database
                 user_id = user['localId']
-                data = {
+                user_data = {
+                    "firstname": request.session.get('first_name'),
+                    "lastname": request.session.get('last_name'),
                     "email": email,
                     "role": "user"  # Automatically mark as "user"
                 }
-                database.child("users").child(user_id).set(data)
+                database.child("users").child(user_id).set(user_data)
 
-                # Clear OTP from session
+                # Clear OTP and email from session
                 del request.session['otp']
                 del request.session['otp_email']
+                del request.session['first_name']
+                del request.session['last_name']
 
                 return JsonResponse({'success': True})
 
@@ -419,8 +493,8 @@ def verify_login_otp(request):
 
             if otp == str(session_otp):
                 # OTP is correct
-                # You can now log the user in or redirect them to a secure area
-                # For example, you might create a session for the user here
+               
+             
 
                 # Clear OTP from session
                 del request.session['login_otp']

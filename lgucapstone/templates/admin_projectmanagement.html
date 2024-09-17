@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <title>Project Management</title>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{% static 'argao_logo.jpg' %}" alt="Logo">
+    </div>
+    <div class="nav-item" onclick="window.location.href='/admin_dash'">Dashboard</div>
+    <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
+    <div class="nav-item" onclick="window.location.href='/user_resolution'">Services</div>
+    <div class="nav-item" onclick="window.location.href='/user_services'">Feedbacks</div>
+    <div class="nav-item" onclick="window.location.href='/user_announcement'">Announcement</div>
+    <div class="nav-item" onclick="window.location.href='/user_attendance'">Attendance</div>
+    <div class="nav-item" onclick="window.location.href='/admin_promanage'">Project Management</div>
+  </div>
+
+  <!-- User Profile -->
+  <div class="user-profile">
+    <img src="{% static 'user_profile.png' %}" alt="User Profile">
+    <span class="ms-2">User Name</span>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container mt-4">
+      <h2>Project Management</h2>
+
+      <!-- Form for Adding Project -->
+      <form id="project-form">
+        <div class="mb-3">
+          <label for="project-title" class="form-label">Project Title</label>
+          <input type="text" class="form-control" id="project-title" placeholder="Enter project title" required>
+        </div>
+        <div class="mb-3">
+          <label for="project-description" class="form-label">Project Description</label>
+          <textarea class="form-control" id="project-description" placeholder="Enter project description" required></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="project-budget" class="form-label">Budget Allocation</label>
+          <input type="text" class="form-control" id="project-budget" placeholder="Enter project budget" required>
+        </div>
+        <button type="submit" class="btn btn-success">Save Project</button>
+      </form>
+
+      <!-- Search Bar -->
+      <div class="mt-5">
+        <input type="text" id="search-bar" class="form-control" placeholder="Search Projects">
+      </div>
+
+      <!-- Projects Display -->
+      <div id="projects-list" class="mt-4">
+        <!-- Projects will be dynamically displayed here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- View Details Modal -->
+  <div class="modal fade" id="viewDetailsModal" tabindex="-1" aria-labelledby="viewDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewDetailsModalLabel">Project Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Title:</strong> <span id="view-title"></span></p>
+          <p><strong>Description:</strong> <span id="view-description"></span></p>
+          <p><strong>Budget:</strong> ₱<span id="view-budget"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Project Modal -->
+  <div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editProjectModalLabel">Edit Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="edit-title" class="form-label">Project Title</label>
+            <input type="text" class="form-control" id="edit-title" required>
+          </div>
+          <div class="mb-3">
+            <label for="edit-description" class="form-label">Project Description</label>
+            <textarea class="form-control" id="edit-description" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label for="edit-budget" class="form-label">Budget Allocation</label>
+            <input type="text" class="form-control" id="edit-budget" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" onclick="saveEditProject()">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+
+	<!-- Firebase Database SDK (v8) -->
+	<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- JavaScript -->
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAMwvUHsWFkTmJyfzuh4DxzOrMYEjcXHvI",
+      authDomain: "lgucapstoneproject-b94fe.firebaseapp.com",
+      databaseURL: "https://lgucapstoneproject-b94fe-default-rtdb.firebaseio.com",
+      projectId: "lgucapstoneproject-b94fe",
+      storageBucket: "lgucapstoneproject-b94fe.appspot.com",
+      messagingSenderId: "984934888272",
+      appId: "1:984934888272:web:e835b8e02ae708629a7255",
+      measurementId: "G-F84YQS756S"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
+
+    // Budget Input Formatting
+    document.getElementById('project-budget').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/,/g, '');
+      if (!isNaN(value)) {
+        e.target.value = Number(value).toLocaleString();
+      }
+    });
+
+    document.getElementById('edit-budget').addEventListener('input', function (e) {
+      let value = e.target.value.replace(/,/g, '');
+      if (!isNaN(value)) {
+        e.target.value = Number(value).toLocaleString();
+      }
+    });
+
+    // Save project to Firebase
+    document.getElementById('project-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      var title = document.getElementById('project-title').value;
+      var description = document.getElementById('project-description').value;
+      var budget = document.getElementById('project-budget').value.replace(/,/g, '');
+
+      if (title && description && budget) {
+        var newProjectKey = db.ref().child('projects').push().key;
+        var projectData = {
+          title,
+          description,
+          budget,
+        };
+
+        var updates = {};
+        updates['/projects/' + newProjectKey] = projectData;
+
+        db.ref().update(updates)
+          .then(() => {
+            alert('Project saved successfully!');
+            document.getElementById('project-form').reset();
+            loadProjects();
+          })
+          .catch((error) => {
+            console.error('Error saving project:', error);
+          });
+      }
+    });
+
+    // Load projects and display them
+    function loadProjects() {
+      var projectsList = document.getElementById('projects-list');
+      projectsList.innerHTML = ''; // Clear the list first
+
+      db.ref('projects').once('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
+          var project = childSnapshot.val();
+          var projectId = childSnapshot.key;
+
+          // Create project card
+          var projectCard = document.createElement('div');
+          projectCard.className = 'card mb-3';
+          projectCard.innerHTML = `
+            <div class="card-body">
+              <h5 class="card-title">${project.title}</h5>
+              <p class="card-text">${project.description}</p>
+              <p class="card-text"><strong>Budget:</strong> ₱${Number(project.budget).toLocaleString()}</p>
+              <button class="btn btn-primary" onclick="viewProject('${projectId}')">View Details</button>
+              <button class="btn btn-warning" onclick="editProject('${projectId}')">Edit</button>
+              <button class="btn btn-danger" onclick="deleteProject('${projectId}')">Delete</button>
+            </div>
+          `;
+          projectsList.appendChild(projectCard);
+        });
+      });
+    }
+
+    // View Project
+    function viewProject(projectId) {
+      db.ref('projects/' + projectId).once('value', function(snapshot) {
+        var project = snapshot.val();
+        document.getElementById('view-title').textContent = project.title;
+        document.getElementById('view-description').textContent = project.description;
+        document.getElementById('view-budget').textContent = Number(project.budget).toLocaleString();
+
+        var viewDetailsModal = new bootstrap.Modal(document.getElementById('viewDetailsModal'));
+        viewDetailsModal.show();
+      });
+    }
+
+    // Edit Project
+    let currentProjectId;
+
+    function editProject(projectId) {
+      currentProjectId = projectId;
+
+      db.ref('projects/' + projectId).once('value', function(snapshot) {
+       var project = snapshot.val();
+        document.getElementById('edit-title').value = project.title;
+        document.getElementById('edit-description').value = project.description;
+        document.getElementById('edit-budget').value = Number(project.budget).toLocaleString();
+
+        const editProjectModal = new bootstrap.Modal(document.getElementById('editProjectModal'));
+        editProjectModal.show();
+      });
+    }
+
+    function saveEditProject() {
+      var title = document.getElementById('edit-title').value;
+      var description = document.getElementById('edit-description').value;
+      var budget = document.getElementById('edit-budget').value.replace(/,/g, '');
+
+      var updates = {
+        title,
+        description,
+        budget,
+      };
+
+      db.ref('projects/' + currentProjectId).update(updates)
+        .then(() => {
+          alert('Project updated successfully!');
+          loadProjects();
+          var editProjectModal = bootstrap.Modal.getInstance(document.getElementById('editProjectModal'));
+          editProjectModal.hide();
+        })
+        .catch((error) => {
+          console.error('Error updating project:', error);
+        });
+    }
+
+
+    function deleteProject(projectId) {
+      if (confirm('Are you sure you want to delete this project?')) {
+        db.ref('projects/' + projectId).remove()
+          .then(function() {
+            alert('Project deleted successfully!');
+            loadProjects();
+          })
+          .catch(function(error) {
+            console.error('Error deleting project:', error);
+          });
+      }
+    }
+    // Initial load
+    loadProjects();
+  </script>
+
+<style>
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 250px;
+    background-color: #f8f9fa;
+    padding-top: 20px;
+    border-right: 1px solid #ddd;
+  }
+
+  .sidebar .logo {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .sidebar .logo img {
+    width: 100px;
+    border-radius: 50%;
+  }
+
+  .sidebar .nav-item {
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
+
+  .sidebar .nav-item:hover {
+    background-color: #e9ecef;
+    cursor: pointer;
+  }
+
+  .main-content {
+    margin-left: 250px;
+    padding: 20px;
+  }
+
+  .user-profile {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    z-index: 10; /* Ensure it's on top */
+  }
+
+  .user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
+
+  .chart-container {
+    margin-top: 20px;
+  }
+
+  .card {
+    margin-bottom: 20px;
+  }
+
+  #pieChartOrdinance,
+  #pieChartResolution {
+    max-width: 400px; /* Adjust size here */
+    height: auto;
+  }
+
+  .btn-generate-report {
+    margin-top: 20px;
+  }
+  #pieChartOrdinance,
+#pieChartResolution {
+max-width: 300px; /* Smaller size */
+max-height: 300px;
+margin-left: 7rem;
+}
+
+#barChart {
+max-width: 700px; /* Smaller size */
+max-height: 400px;
+max-width: 100%;
+}
+
+.card {
+text-align: center; /* Center the charts within their cards */
+}
+.col-md-12{
+max-width: 70%;
+margin-left: 15rem;
+}
+</style>
+
+</body>
+</html>

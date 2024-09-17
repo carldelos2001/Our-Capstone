@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <!-- jsPDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.6.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/vfs_fonts.js"></script>
 
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -27,10 +27,11 @@
     </div>
     <div class="nav-item" onclick="window.location.href='/admin_dash'">Dashboard</div>
     <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
-    <div class="nav-item" onclick="window.location.href='/user_resolution'">Services</div>
-    <div class="nav-item" onclick="window.location.href='/user_services'">Feedbacks</div>
+    <div class="nav-item" onclick="window.location.href='/admin_services'">Services</div>
+    <div class="nav-item" onclick="window.location.href='/admin_feedback'">Feedbacks</div>
     <div class="nav-item" onclick="window.location.href='/admin_announcement'">Announcement</div>
     <div class="nav-item" onclick="window.location.href='/admin_attendance'">Attendance</div>
+    <div class="nav-item" onclick="window.location.href='/admin_promanage'">Project Management</div>
   </div>
 
   <!-- User Profile -->
@@ -43,32 +44,53 @@
   <div class="main-content">
     <h1>Reports</h1>
     <!-- Charts Section -->
-    <div class="chart-container">
-      <div class="row">
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-body">
-              <h5>Ordinances</h5>
-              <canvas id="pieChartOrdinance"></canvas>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-body">
-              <h5>Resolutions </h5>
-              <canvas id="pieChartResolution"></canvas>
-            </div>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5>Ordinances</h5>
+            <canvas id="pieChartOrdinance"></canvas> <!-- Smaller pie chart -->
           </div>
         </div>
       </div>
-      <div class="row mt-3">
-        <div class="col-md-12">
-          <div class="card">
-            <div class="card-body">
-              <h5>Ordinance and Resolution </h5>
-              <canvas id="barChart"></canvas>
-            </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5>Resolutions</h5>
+            <canvas id="pieChartResolution"></canvas> <!-- Smaller pie chart -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h5>Ordinance and Resolution</h5>
+            <canvas id="barChart"></canvas> <!-- Smaller bar chart -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Project Management Table -->
+    <div class="row mt-3">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h5>Project Management</h5>
+            <table class="table table-bordered" id="projectsTable">
+              <thead>
+                <tr>
+                  <th>Project Name</th>
+                  <th>Budget Allocation</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Project rows will be added here -->
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -103,11 +125,17 @@
       try {
         const ordinancesRef = ref(db, 'ordinances');
         const resolutionsRef = ref(db, 'resolutions');
+        const projectsRef = ref(db, 'projects');
 
-        const [ordinancesSnapshot, resolutionsSnapshot] = await Promise.all([get(ordinancesRef), get(resolutionsRef)]);
+        const [ordinancesSnapshot, resolutionsSnapshot, projectsSnapshot] = await Promise.all([
+          get(ordinancesRef),
+          get(resolutionsRef),
+          get(projectsRef)
+        ]);
 
         const ordinancesData = ordinancesSnapshot.val() || {};
         const resolutionsData = resolutionsSnapshot.val() || {};
+        const projectsData = projectsSnapshot.val() || {};
 
         const ordinanceCounts = new Array(12).fill(0);
         const resolutionCounts = new Array(12).fill(0);
@@ -131,8 +159,20 @@
 
         pieChartResolution.data.datasets[0].data = [Object.keys(resolutionsData).length];
         pieChartResolution.update();
+
+        // Populate Project Management Table
+        const projectsTableBody = document.querySelector('#projectsTable tbody');
+        projectsTableBody.innerHTML = ''; // Clear existing rows
+        Object.entries(projectsData).forEach(([projectId, project]) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${project.title}</td>
+            <td>₱${Number(project.budget).toLocaleString()}</td>
+          `;
+          projectsTableBody.appendChild(row);
+        });
       } catch (error) {
-        console.error('Error fetching chart data: ', error);
+        console.error('Error fetching data: ', error);
       }
     }
 
@@ -225,140 +265,161 @@
     });
 
     function generateReport() {
-  const tableContent = `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>SB LGU Report</title>
-        <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-            th, td { padding: 8px 12px; border: 1px solid #ddd; text-align: left; }
-            th { background-color: #f4f4f4; }
-            .header { font-size: 24px; margin-bottom: 20px; }
-            .footer { margin-top: 20px; }
-        </style>
-    </head>
-    <body>
-        <div class="header">SB LGU Report</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Month</th>
-                    <th>Ordinances</th>
-                    <th>Resolutions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>January</td>
-                    <td>5</td>
-                    <td>8</td>
-                </tr>
-                <tr>
-                    <td>February</td>
-                    <td>7</td>
-                    <td>4</td>
-                </tr>
-                <!-- Repeat for all months -->
-            </tbody>
-        </table>
-        <div class="footer">Generated by SB LGU Report System</div>
-    </body>
-    </html>
-  `;
+  // Fetch real-time chart data
+  const ordinanceCounts = barChart.data.datasets[0].data; // Ordinances data from bar chart
+  const resolutionCounts = barChart.data.datasets[1].data; // Resolutions data from bar chart
 
-  // Create Blob
-  const blob = new Blob([tableContent], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
+  // Prepare table rows with real-time data
+  const reportData = [
+    ['January', ordinanceCounts[0], resolutionCounts[0]],
+    ['February', ordinanceCounts[1], resolutionCounts[1]],
+    ['March', ordinanceCounts[2], resolutionCounts[2]],
+    ['April', ordinanceCounts[3], resolutionCounts[3]],
+    ['May', ordinanceCounts[4], resolutionCounts[4]],
+    ['June', ordinanceCounts[5], resolutionCounts[5]],
+    ['July', ordinanceCounts[6], resolutionCounts[6]],
+    ['August', ordinanceCounts[7], resolutionCounts[7]],
+    ['September', ordinanceCounts[8], resolutionCounts[8]],
+    ['October', ordinanceCounts[9], resolutionCounts[9]],
+    ['November', ordinanceCounts[10], resolutionCounts[10]],
+    ['December', ordinanceCounts[11], resolutionCounts[11]],
+  ];
 
-  // Create link to download
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'SB_LGU_Report.pdf';
+  // Define the PDF document
+  const docDefinition = {
+    content: [
+      { text: 'Project Management Report', style: 'header' },
+      { text: 'Generated on: ' + new Date().toLocaleDateString(), style: 'subheader' },
+      {
+        table: {
+          headerRows: 1,
+          widths: ['*', '*'],
+          body: [
+            ['Project Name', 'Budget Allocation'],
+            ...Array.from(document.querySelectorAll('#projectsTable tbody tr')).map(row => [
+              row.cells[0].textContent,
+              row.cells[1].textContent
+            ])
+          ]
+        },
+        style: 'table'
+      },
+      { text: 'Ordinance and Resolution Statistics', style: 'subheader' },
+      {
+        table: {
+          headerRows: 1,
+          widths: ['*', '*', '*'],
+          body: [
+            ['Month', 'Ordinances', 'Resolutions'],
+            ...reportData // Inserting the real-time data into the table
+          ]
+        },
+        style: 'table'
+      }
+    ],
+    styles: {
+      header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10] },
+      subheader: { fontSize: 14, bold: true, margin: [0, 10, 0, 5] },
+      table: { margin: [0, 5, 0, 15] }
+    }
+  };
 
-  // Trigger download
-  link.click();
-
-  // Revoke object URL after download
-  URL.revokeObjectURL(url);
+  pdfMake.createPdf(docDefinition).download('project_management_report.pdf');
 }
 
   </script>
 
-  <!-- Custom CSS -->
-  <style>
-    .sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 250px;
-      background-color: #f8f9fa;
-      padding-top: 20px;
-      border-right: 1px solid #ddd;
-    }
+<style>
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 250px;
+    background-color: #f8f9fa;
+    padding-top: 20px;
+    border-right: 1px solid #ddd;
+  }
 
-    .sidebar .logo {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+  .sidebar .logo {
+    text-align: center;
+    margin-bottom: 20px;
+  }
 
-    .sidebar .logo img {
-      width: 100px;
-      border-radius: 50%;
-    }
+  .sidebar .logo img {
+    width: 100px;
+    border-radius: 50%;
+  }
 
-    .sidebar .nav-item {
-      padding: 15px 20px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
+  .sidebar .nav-item {
+    padding: 15px 20px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+  }
 
-    .sidebar .nav-item:hover {
-      background-color: #e9ecef;
-      cursor: pointer;
-    }
+  .sidebar .nav-item:hover {
+    background-color: #e9ecef;
+    cursor: pointer;
+  }
 
-    .main-content {
-      margin-left: 250px;
-      padding: 20px;
-    }
+  .main-content {
+    margin-left: 250px;
+    padding: 20px;
+  }
 
-    .user-profile {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      display: flex;
-      align-items: center;
-      z-index: 10; /* Ensure it's on top */
-    }
+  .user-profile {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    z-index: 10; /* Ensure it's on top */
+  }
 
-    .user-profile img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-    }
+  .user-profile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+  }
 
-    .chart-container {
-      margin-top: 20px;
-    }
+  .chart-container {
+    margin-top: 20px;
+  }
 
-    .card {
-      margin-bottom: 20px;
-    }
+  .card {
+    margin-bottom: 20px;
+  }
 
-    #pieChartOrdinance,
-    #pieChartResolution {
-      max-width: 400px; /* Adjust size here */
-      height: auto;
-    }
+  #pieChartOrdinance,
+  #pieChartResolution {
+    max-width: 400px; /* Adjust size here */
+    height: auto;
+  }
 
-    .btn-generate-report {
-      margin-top: 20px;
-    }
-  </style>
+  .btn-generate-report {
+    margin-top: 20px;
+  }
+  #pieChartOrdinance,
+#pieChartResolution {
+max-width: 300px; /* Smaller size */
+max-height: 300px;
+margin-left: 7rem;
+}
+
+#barChart {
+max-width: 700px; /* Smaller size */
+max-height: 400px;
+max-width: 100%;
+}
+
+.card {
+text-align: center; /* Center the charts within their cards */
+}
+.col-md-12{
+max-width: 70%;
+margin-left: 15rem;
+}
+</style>
+
 </body>
 </html>
