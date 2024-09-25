@@ -6,6 +6,7 @@ from .views import verify_login_otp
 from .views import send_login_otp
 from .views import  get_user_info
 from .views import update_user_info
+from .views import submit_requirements
 
 
 urlpatterns = [
@@ -25,6 +26,8 @@ urlpatterns = [
     path('admin_report', views.admin_report, name='admin_report'),
     path('admin_announcement', views.admin_announcement, name='admin_announcement'),
     path('admin_attendance', views.admin_attendance, name='admin_attendance'),
+    path('admin_services', views.admin_services, name='admin_services'),
+
 
     path('send-otp/', send_otp, name='send_otp'),
     path('verify-otp/', verify_otp, name='verify_otp'),
@@ -39,4 +42,5 @@ urlpatterns = [
     path('admin_promanage', views.admin_promanage, name='admin_promanage'),
     path('get_user_info/', get_user_info, name='get_user_info'),
     path('update_user_info/', update_user_info, name='update_user_info'),
+    path('api/submit-requirements/', submit_requirements, name='submit_requirements'),
 ]

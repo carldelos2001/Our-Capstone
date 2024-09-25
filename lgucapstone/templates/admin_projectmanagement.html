@@ -26,7 +26,7 @@
     <div class="nav-item" onclick="window.location.href='/user_resolution'">Services</div>
     <div class="nav-item" onclick="window.location.href='/user_services'">Feedbacks</div>
     <div class="nav-item" onclick="window.location.href='/user_announcement'">Announcement</div>
-    <div class="nav-item" onclick="window.location.href='/user_attendance'">Attendance</div>
+    <div class="nav-item" onclick="window.location.href='/admin_attendance'">Attendance</div>
     <div class="nav-item" onclick="window.location.href='/admin_promanage'">Project Management</div>
   </div>
 
@@ -289,6 +289,29 @@
     }
     // Initial load
     loadProjects();
+
+   // Search functionality
+document.getElementById('search-bar').addEventListener('input', function() {
+  var searchValue = this.value.toLowerCase();
+  var projectCards = document.querySelectorAll('#projects-list .card');
+
+  projectCards.forEach(function(card) {
+    var title = card.querySelector('.card-title').textContent.toLowerCase();
+    var description = card.querySelector('.card-text').textContent.toLowerCase();
+    var budget = card.querySelector('.card-text:nth-child(3)').textContent.toLowerCase();
+
+    if (title.includes(searchValue) || description.includes(searchValue) || budget.includes(searchValue)) {
+      card.style.display = 'block'; // Show the project
+    } else {
+      card.style.display = 'none'; // Hide the project
+    }
+  });
+});
+
+
+
+
+
   </script>
 
 <style>

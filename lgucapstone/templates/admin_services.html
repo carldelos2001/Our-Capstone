@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  {% load static %}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+
+  <title>Admin Services</title>
+  <style>
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 250px;
+      background-color: #f8f9fa;
+      padding-top: 20px;
+      border-right: 1px solid #ddd;
+    }
+    
+    .sidebar .logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    
+    .sidebar .logo img {
+      width: 100px;
+      border-radius: 50%;
+    }
+    
+    .sidebar .nav-item {
+      padding: 15px 20px;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .sidebar .nav-item:hover {
+      background-color: #e9ecef;
+      cursor: pointer;
+    }
+    
+    .main-content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+    
+    .user-profile {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      z-index: 10;
+    }
+    
+    .user-profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .btn-approve {
+      background-color: #28a745;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-approve:hover {
+      background-color: #218838;
+    }
+
+    .btn-disapprove {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-disapprove:hover {
+      background-color: #c82333;
+    }
+
+    .add-comment {
+      margin-top: 10px;
+    }
+    
+    .btn-submit {
+      background-color: #52AE77;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-submit:hover {
+      background-color: #4a9d6d;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="logo">
+      <img src="{% static 'argao_logo.jpg' %}" alt="Logo">
+    </div>
+    <div class="nav-item" onclick="window.location.href='/admin_dash'">Dashboard</div>
+    <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
+    <div class="nav-item" onclick="window.location.href='/admin_services'">Services</div>
+    <div class="nav-item" onclick="window.location.href='/admin_feedback'">Feedbacks</div>
+    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Announcement</div>
+    <div class="nav-item" onclick="window.location.href='/admin_attendance'">Attendance</div>
+    <div class="nav-item" onclick="window.location.href='/admin_promanage'">Project Management</div>
+  </div>
+
+  <!-- User Profile -->
+  <div class="user-profile">
+    <img src="{% static 'user_profile.png' %}" alt="User Profile">
+    <span class="ms-2">Admin</span>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container mt-4">
+      <h2>Pending Appointments</h2>
+      <div class="table-container mb-3">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Service Title</th>
+              <th>User Name</th>
+              <th>Appointment Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="appointments-table-body">
+            <!-- Rows will be dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approve/Disapprove Modal -->
+  <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="appointmentModalLabel">Appointment Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Service Title:</strong> <span id="serviceTitle"></span></p>
+          <p><strong>User Name:</strong> <span id="userName"></span></p>
+          <p><strong>Appointment Date:</strong> <span id="appointmentDate"></span></p>
+          <p><strong>Documents:</strong> <span id="documentsList"></span></p>
+          
+          <div class="add-comment">
+            <label for="adminComment" class="form-label">Leave a comment (optional)</label>
+            <textarea class="form-control" id="adminComment" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-approve" onclick="approveAppointment()">Approve</button>
+          <button type="button" class="btn btn-disapprove" onclick="disapproveAppointment()">Disapprove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.9.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js"></script>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Inline JavaScript -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAMwvUHsWFkTmJyfzuh4DxzOrMYEjcXHvI",
+      authDomain: "lgucapstoneproject-b94fe.firebaseapp.com",
+      databaseURL: "https://lgucapstoneproject-b94fe-default-rtdb.firebaseio.com",
+      projectId: "lgucapstoneproject-b94fe",
+      storageBucket: "lgucapstoneproject-b94fe.appspot.com",
+      messagingSenderId: "984934888272",
+      appId: "1:984934888272:web:e835b8e02ae708629a7255",
+      measurementId: "G-F84YQS756S"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function loadPendingAppointments() {
+      const appointmentsTableBody = document.getElementById('appointments-table-body');
+      db.ref('appointments').orderByChild('status').equalTo('pending').once('value', snapshot => {
+        appointmentsTableBody.innerHTML = '';
+        snapshot.forEach(childSnapshot => {
+          const appointment = childSnapshot.val();
+          const row = `
+            <tr>
+              <td>${appointment.serviceTitle}</td>
+              <td>${appointment.userName}</td>
+              <td>${appointment.date}</td>
+              <td><button class="btn btn-primary" onclick="openAppointmentModal('${childSnapshot.key}', '${appointment.serviceTitle}', '${appointment.userName}', '${appointment.date}', '${appointment.documents}')">Check Appointment</button></td>
+            </tr>
+          `;
+          appointmentsTableBody.insertAdjacentHTML('beforeend', row);
+        });
+      });
+    }
+
+    function openAppointmentModal(key, serviceTitle, userName, date, documents) {
+      document.getElementById('serviceTitle').innerText = serviceTitle;
+      document.getElementById('userName').innerText = userName;
+      document.getElementById('appointmentDate').innerText = date;
+      document.getElementById('documentsList').innerText = documents;
+
+      // Store the appointment key for approving/disapproving
+      document.getElementById('appointmentModal').dataset.key = key;
+      new bootstrap.Modal(document.getElementById('appointmentModal')).show();
+    }
+
+    function approveAppointment() {
+      const key = document.getElementById('appointmentModal').dataset.key;
+      db.ref('appointments/' + key).update({ status: 'approved' });
+      alert('Appointment approved.');
+      loadPendingAppointments(); // Reload the appointments table
+    }
+
+    function disapproveAppointment() {
+      const key = document.getElementById('appointmentModal').dataset.key;
+      const comment = document.getElementById('adminComment').value;
+      db.ref('appointments/' + key).update({ status: 'disapproved', comment: comment });
+      alert('Appointment disapproved.');
+      loadPendingAppointments(); // Reload the appointments table
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPendingAppointments);
+  </script>
+</body>
+</html>

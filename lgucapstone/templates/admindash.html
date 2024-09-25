@@ -95,7 +95,7 @@
     .results-table {
       margin-top: 20px;
     }
-    .btn.btn.btn-success{
+    .btn.btn-success{
       margin-top: 20px;
     }
   </style>
@@ -159,7 +159,8 @@
         <thead>
           <tr>
             <th>Title</th>
-            <th>Description</th>
+            <th>Author</th>
+            <th>Date Approved</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -185,6 +186,7 @@
       appId: "1:984934888272:web:e835b8e02ae708629a7255",
       measurementId: "G-F84YQS756S"
     };
+
 
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
@@ -255,9 +257,10 @@
     }
 
     // Fetch Chart Data on Page Load
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', () => {
       fetchBarChartData();
       fetchPieChartData();
+      fetchData();
     });
 
     // Fetch Data from Firebase
@@ -270,10 +273,10 @@
           const ordinancesData = ordinancesSnapshot.val() || {};
           const resolutionsData = resolutionsSnapshot.val() || {};
 
-          // Combine both data sets
+          // Combine both ordinances and resolutions into a single dataset
           window.allData = { ...ordinancesData, ...resolutionsData };
 
-          // Display all data initially or on a default search
+          // Display all data initially
           displayResults(window.allData);
         })
         .catch((error) => {
@@ -281,14 +284,17 @@
         });
     }
 
+    // Display results in the table
     function displayResults(data) {
       const resultsContainer = document.getElementById('results-container');
       resultsContainer.innerHTML = ''; // Clear previous results
+
       Object.values(data).forEach((item) => {
         const row = `
           <tr>
             <td>${item.title || 'No Title'}</td>
-            <td>${item.description || 'No Description'}</td>
+            <td>${item.author || 'No Author'}</td>
+            <td>${item.date_approved || 'No Date'}</td>
             <td>
               <a href="${item.document_url || '#'}" class="btn btn-primary btn-sm">View</a>
               <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
@@ -300,6 +306,32 @@
       });
     }
 
+     // Dynamic Search Functionality
+  function dynamicSearch() {
+    const query = document.getElementById('search-box').value.toLowerCase();
+    const filteredData = {};
+
+    // Filter based on title, author, or date_approved
+    Object.keys(window.allData).forEach((key) => {
+      const item = window.allData[key];
+      if (
+        (item.title && item.title.toLowerCase().includes(query)) ||
+        (item.author && item.author.toLowerCase().includes(query)) ||
+        (item.date_approved && item.date_approved.toLowerCase().includes(query))
+      ) {
+        filteredData[key] = item;
+      }
+    });
+
+    // Display filtered results
+    displayResults(filteredData);
+  }
+
+  // Add an event listener for the input event on the search box
+  document.getElementById('search-box').addEventListener('input', dynamicSearch);
+
+
+    // Search Functionality
     function search() {
       const query = document.getElementById('search-box').value.toLowerCase();
       const filteredData = {};
@@ -307,7 +339,8 @@
         const item = window.allData[key];
         if (
           (item.title && item.title.toLowerCase().includes(query)) ||
-          (item.description && item.description.toLowerCase().includes(query))
+          (item.author && item.author.toLowerCase().includes(query)) ||
+          (item.date_approved && item.date_approved.toLowerCase().includes(query))
         ) {
           filteredData[key] = item;
         }
@@ -317,17 +350,42 @@
 
     document.getElementById('search-button').addEventListener('click', search);
 
-    // Fetch Data on Page Load
-    document.addEventListener('DOMContentLoaded', fetchData);
+    // Confirm before deletion
+  function confirmDelete(id) {
+    const isConfirmed = confirm("Are you sure you want to delete this item?");
     
-    // Dummy delete function
-    function deleteItem(id) {
-      console.log('Delete item with id:', id);
+    if (isConfirmed) {
+      deleteItem(id);
     }
-  </script>
+  }
 
-  <!-- Chart.js Script -->
-  <script>
+  // Delete item from Firebase
+  function deleteItem(id) {
+    // Assuming items can be ordinances or resolutions, try deleting from both
+    const ordinancesRef = ref(db, `ordinances/${id}`);
+    const resolutionsRef = ref(db, `resolutions/${id}`);
+
+    // Delete from ordinances if it exists there
+    remove(ordinancesRef)
+      .then(() => {
+        console.log(`Ordinance with ID ${id} deleted.`);
+        document.getElementById(`row-${id}`).remove(); // Remove from UI
+      })
+      .catch((error) => {
+        console.error('Ordinance not found, trying resolution...');
+        // Try deleting from resolutions
+        remove(resolutionsRef)
+          .then(() => {
+            console.log(`Resolution with ID ${id} deleted.`);
+            document.getElementById(`row-${id}`).remove(); // Remove from UI
+          })
+          .catch((error) => {
+            console.error('Error deleting item:', error);
+          });
+      });
+  }
+
+    // Bar Chart Initialization
     // Bar Chart
     const barChartContext = document.getElementById('barChart').getContext('2d');
     const barChart = new Chart(barChartContext, {
@@ -394,5 +452,7 @@
     });
   </script>
 
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -18,6 +18,10 @@ import pyrebase
 import json
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 config = {
     "apiKey": "AIzaSyAMwvUHsWFkTmJyfzuh4DxzOrMYEjcXHvI",
     "authDomain": "lgucapstoneproject-b94fe.firebaseapp.com",
@@ -32,13 +36,6 @@ config = {
 firebase=pyrebase.initialize_app(config) 
 authe = firebase.auth()
 database = firebase.database()
-
-authe = pyrebase.initialize_app(config).auth()
-database = pyrebase.initialize_app(config).database()
-
-
-
-
 
 def home(request):
     first_name = request.session.get('first_name', 'Guest')
@@ -96,13 +93,15 @@ def login(request):
         try:
             # Authenticate the user with Firebase Authentication
             user = authe.sign_in_with_email_and_password(email, password)
+            user_id = user['localId']
             user_info = authe.get_account_info(user['idToken'])
             first_name = user_info['users'][0].get('displayName', 'Guest')
 
             # Store user details in session
             request.session['first_name'] = first_name
             request.session['email'] = email
-            request.session['user_id'] = user_id
+            request.session['user_id'] = user_id  # Store user ID
+            
             # Redirect to home after successful login
             return redirect('home')
 
@@ -112,42 +111,44 @@ def login(request):
 
             # Map Firebase error codes to user-friendly messages
             if error_message == 'EMAIL_NOT_FOUND':
-                messages.error(request, 'Please check your email and password.')
+                messages.error(request, 'Email not found.')
             elif error_message == 'INVALID_PASSWORD':
-                messages.error(request, 'Please check your email and password.')
+                messages.error(request, 'Invalid password.')
             elif error_message == 'USER_DISABLED':
-                messages.error(request, 'This account has been disabled. Please contact support.')
+                messages.error(request, 'Account disabled. Contact support.')
             else:
-                
-                messages.error(request, 'Please check your email and password.')
+                messages.error(request, 'Login failed. Please try again.')
 
     return render(request, 'login.html')
-
-
-import logging
-
-logger = logging.getLogger(__name__)
 
 @csrf_exempt
 def get_user_info(request):
     if request.method == 'GET':
         try:
+            # Retrieve user ID from the session
             user_id = request.session.get('user_id')
-            logger.debug(f'User ID from session: {user_id}')  # Log the user_id
+            logger.debug(f'User ID from session: {user_id}')  # Log the user ID
             
+            # Check if user is logged in
             if not user_id:
                 return JsonResponse({'error': 'User not logged in'}, status=401)
 
+            # Get user info from Firebase
             user_ref = db.reference(f"users/{user_id}")
             user_info = user_ref.get()
 
+            # Check if user info exists
             if not user_info:
                 return JsonResponse({'error': 'User not found'}, status=404)
 
+            # Return user info as JSON response
             return JsonResponse(user_info)
         except Exception as e:
             logger.error(f'Error fetching user info: {e}')  # Log the error
             return JsonResponse({'error': str(e)}, status=500)
+
+    # If method is not GET, return method not allowed response
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 @csrf_exempt
@@ -188,6 +189,8 @@ def user_forgotpass(request):
     return render(request, 'user_forgotpass.html')
 def admin_promanage(request):
     return render(request, 'admin_projectmanagement.html')
+def admin_services(request):
+    return render(request, 'admin_services.html')
 
 # >>>> ADMIN LOG IN
 def admin_login(request):
@@ -197,28 +200,32 @@ def admin_login(request):
         
         try:
             # Authenticate the user with Firebase Authentication
-            user = authe.sign_in_with_email_and_password(email, password)
+            admin = authe.sign_in_with_email_and_password(email, password)
             
-            # Retrieve the authenticated user's email
-            admin_email = email  
-            
-            # Check the role of the authenticated user in the "admin" path
-            user_role = database.child("admin").order_by_child("email").equal_to(admin_email).get().val()
-            
-            # Check if the user role is "admin"
-            if user_role and next(iter(user_role.values()))['role'] == "admin":
-                return redirect('admin_dash')  
+            # Retrieve the admin credentials stored in Firebase
+            admin_data = database.child("admin").get().val()
+
+            # Check if the email and password match the admin credentials
+            if admin_data:
+                if admin_data.get('email') == email and admin_data.get('password') == password:
+                    # Check if the role is "admin"
+                    if admin_data.get('role') == "admin":
+                        return redirect('admin_dash')
+                    else:
+                        messages.error(request, "You do not have admin access.")
+                else:
+                    messages.error(request, "Invalid email or password.")
             else:
-                messages.error(request, "You do not have admin access.")
-                
+                messages.error(request, "Admin data not found.")
             
-                return redirect('admin_login')  # Redirect back to login
+            return redirect('admin_login')  # Redirect back to login
             
         except Exception as e:
             print(f"Error: {e}")  
             messages.error(request, "Invalid login credentials.")
     
-    return render(request, 'adminlog.html')  
+    return render(request, 'adminlog.html')
+
 
 def admin_dash(request):
     return render(request, 'admindash.html')
@@ -577,3 +584,31 @@ def reset_password_with_otp(request):
         except Exception as e:
             print(f'Error: {e}')
             return JsonResponse({'success': False, 'message': str(e)}, status=500)
+        
+@csrf_exempt
+def submit_requirements(request):
+    if request.method == 'POST':
+        try:
+            body_unicode = request.body.decode('utf-8')
+            body_data = json.loads(body_unicode)  # Assuming you're sending JSON data
+            
+            # Log incoming request data
+            print("Request Data:", body_data)
+
+            documents = body_data.get('documents', [])
+            appointment_date = body_data.get('appointmentDate')
+            appointment_time = body_data.get('appointmentTime')
+
+            # Validate required fields
+            if not documents or not appointment_date or not appointment_time:
+                return JsonResponse({'error': 'Missing required fields.'}, status=400)
+
+            # Process your requirements here
+
+            return JsonResponse({'success': 'Requirements submitted successfully.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)

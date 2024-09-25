@@ -23,18 +23,194 @@
     <label class="header-menu-item selected" id="services">Services</label>
     <label class="header-menu-item" id="announcement">Announcement</label>
   </div>
+  
+  <style>
+    .service-row {
+      margin-top: 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
 
-  
-  
-    <input class="search_box" type="search" placeholder="Search Services...">
-  
-  
+    .service-row h3 {
+      margin: 0;
+    }
 
-  <script src="{% static 'user_services.js' %}"></script>
+    .details-btn, .submit-requirements-btn {
+      padding: 10px 20px;
+      background-color: #52AE77;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      width: 50%;
+      border-radius: 8px;
+    }
+
+    .close {
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input[type="file"], input[type="date"], input[type="time"] {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+    }
+
+    #setAppointmentBtn {
+      padding: 10px 20px;
+      background-color: #52AE77;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .appointment-status {
+      margin-top: 20px;
+    }
+
+    .edit-docs-btn {
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+
+  <h1>Services Offered by the Sangguniang Bayan</h1>
+  
+  <div class="service-row">
+    <h3>Service Title 1</h3>
+    <button class="details-btn">More Details</button>
+    <button class="submit-requirements-btn">Submit Requirements</button>
+  </div>
+
+  <div class="service-row">
+    <h3>Service Title 2</h3>
+    <button class="details-btn">More Details</button>
+    <button class="submit-requirements-btn">Submit Requirements</button>
+  </div>
+
+  <!-- Modal for Submitting Requirements -->
+  <div id="submitRequirementsModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h3>Submit Your Requirements</h3>
+
+      <form id="requirementForm">
+        <label for="fileUpload">Upload Documents</label>
+        <input type="file" id="fileUpload" name="documents" multiple required>
+
+        <label for="appointmentDate">Set Appointment Date</label>
+        <input type="date" id="appointmentDate" name="appointmentDate" required>
+
+        <label for="appointmentTime">Set Appointment Time</label>
+        <input type="time" id="appointmentTime" name="appointmentTime" required>
+
+        <button type="submit" id="setAppointmentBtn">Set Appointment</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="appointment-status">
+    <h2>Your Appointment</h2>
+    <p>Status: <span id="appointmentStatus">Pending</span></p>
+    <button class="edit-docs-btn">Edit Submitted Documents</button>
+  </div>
+
   <script>
+    const submitModal = document.getElementById("submitRequirementsModal");
+    const submitBtns = document.querySelectorAll(".submit-requirements-btn");
+    const closeModal = document.querySelector(".close");
+  
+    submitBtns.forEach(btn => {
+      btn.addEventListener("click", function() {
+        submitModal.style.display = "block";
+      });
+    });
+  
+    closeModal.addEventListener("click", function() {
+      submitModal.style.display = "none";
+    });
 
+    window.addEventListener("click", function(event) {
+      if (event.target === submitModal) {
+        submitModal.style.display = "none";
+      }
+    });
+
+    document.getElementById("setAppointmentBtn").addEventListener("click", function() {
+    const files = document.getElementById("fileUpload").files;
+    const date = document.getElementById("appointmentDate").value;
+    const time = document.getElementById("appointmentTime").value;
+
+    if (!date || !time || files.length === 0) {
+        alert("Please fill all fields and upload your documents.");
+        return;
+    }
+
+    // Prepare FormData to send files and other data
+    const formData = new FormData();
+    formData.append('date', date);
+    formData.append('time', time);
+    for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]); // Append files to formData
+    }
+
+    // Send data to the backend
+    fetch('/api/submit-requirements/', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(data.message);
+            submitModal.style.display = "none";
+            document.getElementById("appointmentStatus").textContent = "Pending";
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('There was an error submitting your requirements.');
+    });
+});
+
+  </script>
+
+  <script>
     document.getElementById('home1').addEventListener('click', function() {
-      
       window.location.href = '/home';
     });
 
@@ -53,7 +229,6 @@
     document.getElementById('announcement').addEventListener('click', function() {
       window.location.href = '/user_announcement';
     });
-  
   </script>
 </body>
 </html>
