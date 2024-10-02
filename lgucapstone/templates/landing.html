@@ -5,45 +5,77 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="{% static 'landing.css' %}"> 
     <title>Argao Sangguniang Bayan Management Platform</title>
-    <link rel="icon" type="image/jpeg" href="{% static 'argao_logo.jpg'%}">
+    <link rel="icon" type="image/jpeg" href="{% static 'anotherlogo.png'%}">
 
 </head>
 
 <body>
-    <div class="logo">
-        <img class="img_logo" src="{% static 'argao_logo.jpg'%}" id="home1" alt="Logo">
-      </div>
+    
 
     <h1>ARGAO SANGGUNIANG BAYAN MANAGEMENT PLATFORM</h1>
-
-    <text>Improving the Locality through technology, with technology.</text>
+      <br>
+      <h3 class="capt_1"> Improving the locality through technology.</h3>
+    
 
     <button class="button_signup" onclick="window.location.href='signup';" >SIGN UP</button>
     <button class="button_login" onclick="window.location.href='login';">LOG IN</button>
+    
 
-    <img class="img_landing" src="{% static 'landing.jpg'%}"> </img>
+    <img class="img_landing" src="{% static 'anotherlogo.png'%}"> </img>
     <style>
-       body{ 
-        font-family:  sans-serif;
-        font-weight: 400;
-        font-style: normal;
-        
-        }
+        @font-face {
+    font-family: "Poppins";
+    src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+    }
+
+    @font-face {
+    font-family: "Poppins";
+    src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+    font-weight: bold;
+    }
+
+    body{
+      font-family: "Poppins", sans-serif;
+      font-size: 1.5rem;
+      
+    }
         .img_logo {
-                    position: absolute;
-                    top: 9px;
-                    left: 36px;
-                    width: 58px;
-                    height: 58px;
-                    border-radius: 4px;
-                    z-index: 3;
+            position: absolute;
+            top: 9px;
+            left: 36px;
+            width: 58px;
+            height: 58px;
+            border-radius: 4px;
+            z-index: 3;
   
-                    }
+        }
+
+        .img-landing {
+            border-radius: 50%;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            max-width: 100%;
+            height: auto;
+            background-color: rgba(255,255,255,0.1);
+        }
+        .capt_1 {
+        position: absolute;
+        top: 410px;
+        left: 79px;
+        width: 520px;
+        font-size: 20px;
+        line-height: 30px;
+        font-weight: 400;
+        color: #9095A1FF;
+        }
+        .button_signup{
+            font-weight: bold;
+        }
+        .button_login{
+            font-weight: bold;
+        }
     </style>
 </body>
 </html>

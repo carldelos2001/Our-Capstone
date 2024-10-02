@@ -4,7 +4,7 @@ from .views import send_otp
 from .views import verify_otp
 from .views import verify_login_otp
 from .views import send_login_otp
-from .views import  get_user_info
+from .views import get_user_info
 from .views import update_user_info
 from .views import submit_requirements
 
@@ -37,7 +37,7 @@ urlpatterns = [
     path('send_forgot_password_otp/', views.send_forgot_password_otp, name='send_forgot_password_otp'),
     path('reset_password_with_otp/', views.reset_password_with_otp, name='reset_password_with_otp'),
 
-    path('user_forgotpass/', views.user_forgotpass, name='user_forgotpass'),
+    path('user_forgotpass', views.user_forgotpass, name='user_forgotpass'),
 
     path('admin_promanage', views.admin_promanage, name='admin_promanage'),
     path('get_user_info/', get_user_info, name='get_user_info'),

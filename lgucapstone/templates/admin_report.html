@@ -4,7 +4,7 @@
   {% load static %}
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.72/vfs_fonts.js"></script>
 
@@ -330,6 +330,21 @@
   </script>
 
 <style>
+   @font-face {
+  font-family: "Poppins";
+  src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+  }
+
+  @font-face {
+  font-family: "Poppins";
+  src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+  font-weight: bold;
+  }
+
+  body {
+  font-family: "Poppins", sans-serif;
+  font-size: 1rem;
+  }
   .sidebar {
     position: fixed;
     top: 0;

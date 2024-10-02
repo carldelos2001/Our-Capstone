@@ -6,6 +6,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Ordinance/Resolution</title>
     <link rel="stylesheet" href="{% static 'admin-ordi-reso1.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.css' %}">
+    <style>
+        @font-face {
+  font-family: "Poppins";
+  src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
+  }
+
+  @font-face {
+  font-family: "Poppins";
+  src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+  font-weight: bold;
+  }
+
+  body {
+  font-family: "Poppins", sans-serif;
+  font-size: 1rem;
+  }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -13,12 +32,23 @@
         <div class="form-box">
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
+                <!-- Render form fields -->
                 {{ form.as_p }}
                 <button type="submit" class="btn btn-success">Submit</button>
                 <a href="{% url 'admin_dash' %}" class="cancel-button" type="button">Cancel</a>
             </form>
         </div>
     </div>
+
+    <!-- Correctly use the CDN for Flatpickr -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr@4.6.13/dist/flatpickr.min.js"></script>
     <script src="{% static 'admin-ordi-reso.js' %}"></script>
+
+    <script>
+        flatpickr('.datepickr', {
+            enableTime: false,
+            dateFormat: "Y-m-d",
+        });
+    </script>
 </body>
 </html>

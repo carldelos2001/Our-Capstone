@@ -9,7 +9,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
+from django.urls import reverse
 
 import random
 import string
@@ -95,15 +95,25 @@ def login(request):
             user = authe.sign_in_with_email_and_password(email, password)
             user_id = user['localId']
             user_info = authe.get_account_info(user['idToken'])
-            first_name = user_info['users'][0].get('displayName', 'Guest')
+            firstname = user_info['users'][0].get('displayName', 'Guest')
+
+            # Fetch the user's role from Firebase Database
+            role_ref = database.child('users').child(user_id).child('role').get()
+            user_role = role_ref.val()
 
             # Store user details in session
-            request.session['first_name'] = first_name
+            request.session['firstname'] = firstname
             request.session['email'] = email
             request.session['user_id'] = user_id  # Store user ID
-            
-            # Redirect to home after successful login
-            return redirect('home')
+            request.session['role'] = user_role  # Store user role
+
+            # Redirect based on role
+            if user_role == 'admin':
+                # Redirect to admin dashboard
+                return redirect('admin_dash')
+            else:
+                # Redirect to homepage
+                return redirect('home')
 
         except Exception as e:
             error_response = json.loads(e.args[1])  # Get the error response in JSON format
@@ -125,30 +135,24 @@ def login(request):
 def get_user_info(request):
     if request.method == 'GET':
         try:
-            # Retrieve user ID from the session
-            user_id = request.session.get('user_id')
-            logger.debug(f'User ID from session: {user_id}')  # Log the user ID
-            
-            # Check if user is logged in
+            user_id = request.session.get('user_id')  # Retrieve user ID from session
             if not user_id:
                 return JsonResponse({'error': 'User not logged in'}, status=401)
 
-            # Get user info from Firebase
-            user_ref = db.reference(f"users/{user_id}")
-            user_info = user_ref.get()
+            user_ref = db.reference(f'users/{user_id}')  # Reference to the user's data in Firebase
+            user_data = user_ref.get()  # Fetch the user data
 
-            # Check if user info exists
-            if not user_info:
+            if user_data:
+                return JsonResponse({
+                    'firstName': user_data.get('firstname'),
+                    'lastName': user_data.get('lastname'),
+                    'email': user_data.get('email'),
+                })
+            else:
                 return JsonResponse({'error': 'User not found'}, status=404)
 
-            # Return user info as JSON response
-            return JsonResponse(user_info)
         except Exception as e:
-            logger.error(f'Error fetching user info: {e}')  # Log the error
             return JsonResponse({'error': str(e)}, status=500)
-
-    # If method is not GET, return method not allowed response
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 @csrf_exempt
@@ -536,7 +540,7 @@ def send_forgot_password_otp(request):
             # Send email with OTP
             send_mail(
                 'Your Password Reset OTP Code',
-                f'Your OTP code is {otp}.',
+                f'Your OTP for LGU Sangguniang Bayan Management Platform is {otp}. Please do not share this code with anyone for your security.',
                 'stevendelosreyes123@gmail.com',
                 [email],  # Send OTP to the retrieved email
                 fail_silently=False,
@@ -566,9 +570,6 @@ def reset_password_with_otp(request):
             if otp == str(session_otp):
                 # OTP is correct, reset the password
                 user = authe.sign_in_with_email_and_password(email, new_password)  # Sign in to confirm email
-
-                # Reset password functionality is not directly supported, so you need to update it manually or use a different approach
-                # For Firebase, you might need to use Firebase Admin SDK for this functionality.
 
                 # Clear OTP from session
                 del request.session['forgot_password_otp']

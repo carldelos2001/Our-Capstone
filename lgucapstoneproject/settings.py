@@ -136,3 +136,4 @@ EMAIL_HOST_PASSWORD = 'vzwy bfin ksje lbow'
 DEFAULT_FROM_EMAIL = 'stevendelosreyes123@gmail.com'
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 3600  # Session lasts for 1 hour
