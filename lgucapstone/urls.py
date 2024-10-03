@@ -27,7 +27,8 @@ urlpatterns = [
     path('admin_announcement', views.admin_announcement, name='admin_announcement'),
     path('admin_attendance', views.admin_attendance, name='admin_attendance'),
     path('admin_services', views.admin_services, name='admin_services'),
-
+    path('admin_staff_account', views.admin_staff_account, name='admin_staff_account'),
+    path('admin_minutesmaker', views.admin_minutesmaker, name='admin_minutesmaker'),
 
     path('send-otp/', send_otp, name='send_otp'),
     path('verify-otp/', verify_otp, name='verify_otp'),

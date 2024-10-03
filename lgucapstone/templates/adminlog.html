@@ -11,9 +11,8 @@
 </head>
 <body class="d-flex align-items-center justify-content-center vh-100 bg-light">
   <div class="container text-center">
-    <img class="img_logo mb-3" src="{% static 'argao_logo.jpg' %}" alt="Logo">
-    
     <div class="card p-4 shadow-sm" style="max-width: 400px; margin: auto;">
+      <img class="mb-4" src="{% static 'argao_logo.jpg' %}" alt="Logo" style="width: 80px; height: 80px; margin: 0 auto;">
       <h3 class="mb-4">ADMIN LOGIN</h3>
       <form method="post" action="{% url 'admin_login' %}">
         {% csrf_token %}
@@ -23,7 +22,7 @@
         <div class="mb-3">
           <input class="form-control" type="password" name="password" placeholder="Password" required>
         </div>
-        <button class="btn btn-primary" type="submit">LOGIN</button>
+        <button class="btn btn-login" type="submit">LOGIN</button>
       </form>
     </div>
     <!-- Messages Block -->
@@ -38,15 +37,57 @@
   </div>
 
   <style>
-    .img_logo {
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
+    @font-face {
+      font-family: "Poppins";
+      src: url("{% static 'fonts/Poppins-Regular.ttf' %}") format("truetype");
     }
+
+    @font-face {
+      font-family: "Poppins";
+      src: url("{% static 'fonts/Poppins-Bold.ttf' %}") format("truetype");
+      font-weight: bold;
+    }
+
+    body {
+      font-family: "Poppins", sans-serif;
+      font-size: 16px;
+    }
+
     .alert-danger {
       width: 300px;
       margin: 0 auto;
       display: block;
+    }
+    .card {
+      max-width: 400px;
+      margin: auto;
+    }
+    .hidden {
+      display: none;
+    }
+    .btn-login {
+      background-color: #52AE77; 
+      color: #fff;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+    }
+    .btn-login:hover {
+      background-color: #4a9d6d;
+      color: #fff;
+    }
+    .text10, .text3 {
+      color: #52AE77;
+      font-size: 1rem;
+    }
+    .mt-3 {
+      font-size: 1rem;
+    }
+    .mb-4 {
+      font-weight: bold;
     }
   </style>
 </body>

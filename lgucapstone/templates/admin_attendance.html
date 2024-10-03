@@ -123,9 +123,11 @@
     <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
     <div class="nav-item" onclick="window.location.href='/admin_services'">Services</div>
     <div class="nav-item" onclick="window.location.href='/admin_feedback'">Feedbacks</div>
-    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Announcement</div>
+    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Session Agenda</div>
     <div class="nav-item" onclick="window.location.href='/admin_attendance'">Attendance</div>
     <div class="nav-item" onclick="window.location.href='/admin_promanage'">Project Management</div>
+    <div class="nav-item" onclick="window.location.href='/admin_staff_account'">Staff Account Management</div>
+    <div class="nav-item" onclick="window.location.href='/admin_minutesmaker'">Minutes Maker</div>
   </div>
 
   <!-- User Profile -->
@@ -161,11 +163,31 @@
       <button type="button" class="btn btn-primary" onclick="addPerson()">Add Person</button>
       <button type="button" class="btn btn-primary" onclick="submitAttendance()">Submit Attendance</button>
     </div>
+
+    <!-- Printable Attendance Report -->
+    <div class="container mt-5">
+      <h3>Attendance Report</h3>
+      <div id="attendance-report" class="table-responsive">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Session Date</th>
+              <th>Name</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="report-table-body">
+            <!-- Report rows will be added dynamically -->
+          </tbody>
+        </table>
+      </div>
+      <button type="button" class="btn btn-primary" onclick="printReport()">Print Report</button>
+    </div>
   </div>
 
   <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.9.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.9.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.9.1/firebase-database-compat.js"></script>
 
   <!-- JavaScript -->
   <script>
@@ -187,15 +209,23 @@
 
     document.addEventListener('DOMContentLoaded', function() {
       // Set current date and time
-      const dateTimeInput = document.getElementById('date-time');
-      const now = new Date();
-      dateTimeInput.value = now.toLocaleString();
+      updateDateTime();
+      setInterval(updateDateTime, 1000); // Update every second
 
       // Initialize with 10 rows
       for (let i = 1; i <= 10; i++) {
         addRow(i);
       }
+
+      // Load attendance report
+      loadAttendanceReport();
     });
+
+    function updateDateTime() {
+      const dateTimeInput = document.getElementById('date-time');
+      const now = new Date();
+      dateTimeInput.value = now.toLocaleString();
+    }
 
     function addRow(index) {
       const tableBody = document.getElementById('attendance-table-body');
@@ -246,11 +276,43 @@
       })
       .then(() => {
         alert('Attendance recorded successfully!');
+        loadAttendanceReport(); // Reload the report after submitting
       })
       .catch(error => {
         console.error('Error recording attendance: ', error);
-        alert('Error recording attendance.');
+        alert('Error recording attendance: ' + error.message);
       });
+    }
+
+    function loadAttendanceReport() {
+      const reportTableBody = document.getElementById('report-table-body');
+      reportTableBody.innerHTML = ''; // Clear existing rows
+
+      db.ref('attendance').once('value', (snapshot) => {
+        snapshot.forEach((childSnapshot) => {
+          const sessionData = childSnapshot.val();
+          const sessionDate = sessionData.dateTime;
+          
+          sessionData.attendance.forEach((person) => {
+            const row = reportTableBody.insertRow();
+            row.insertCell(0).textContent = sessionDate;
+            row.insertCell(1).textContent = person.name;
+            row.insertCell(2).textContent = person.status;
+          });
+        });
+      });
+    }
+
+    function printReport() {
+      const printContents = document.getElementById('attendance-report').innerHTML;
+      const originalContents = document.body.innerHTML;
+
+      document.body.innerHTML = printContents;
+      window.print();
+      document.body.innerHTML = originalContents;
+
+      // Reload the page to reinitialize everything
+      location.reload();
     }
   </script>
 </body>

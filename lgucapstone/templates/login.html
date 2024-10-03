@@ -83,7 +83,6 @@
 </head>
 <body class="d-flex align-items-center justify-content-center vh-100 bg-light">
   <div class="container text-center">
-  
     
     <div class="card p-4 shadow-sm">
       <div class="logo">
@@ -174,6 +173,7 @@
     document.getElementById('otp-form').addEventListener('submit', async function(event) {
       event.preventDefault();
       const otp = document.querySelector('input[name="otp"]').value;
+      const email = document.querySelector('input[name="email"]').value;
 
       try {
         const response = await fetch('{% url "verify_login_otp" %}', {
@@ -182,12 +182,14 @@
             'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ otp })
+          body: JSON.stringify({ otp, email })
         });
 
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
+            // Store user data in localStorage
+            localStorage.setItem('userData', JSON.stringify(data.user));
             window.location.href = "{% url 'home' %}";
           } else {
             alert('OTP verification failed');

@@ -104,19 +104,21 @@ def login(request):
             # Store user details in session
             request.session['firstname'] = firstname
             request.session['email'] = email
-            request.session['user_id'] = user_id  # Store user ID
-            request.session['role'] = user_role  # Store user role
+            request.session['user_id'] = user_id
+            request.session['role'] = user_role
 
             # Redirect based on role
             if user_role == 'admin':
-                # Redirect to admin dashboard
                 return redirect('admin_dash')
-            else:
-                # Redirect to homepage
+            elif user_role == 'user':
                 return redirect('home')
+            else:
+                # Handle unexpected role
+                messages.error(request, 'Invalid user role. Please contact support.')
+                return redirect('login')
 
         except Exception as e:
-            error_response = json.loads(e.args[1])  # Get the error response in JSON format
+            error_response = json.loads(e.args[1])
             error_message = error_response.get('error', {}).get('message', '')
 
             # Map Firebase error codes to user-friendly messages
@@ -195,6 +197,10 @@ def admin_promanage(request):
     return render(request, 'admin_projectmanagement.html')
 def admin_services(request):
     return render(request, 'admin_services.html')
+def admin_staff_account(request):
+    return render(request, 'admin_staff_account_create.html')
+def admin_minutesmaker(request):
+    return render(request, 'admin_minutesmaker.html')
 
 # >>>> ADMIN LOG IN
 def admin_login(request):

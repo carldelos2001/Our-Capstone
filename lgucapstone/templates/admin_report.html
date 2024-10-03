@@ -29,9 +29,11 @@
     <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
     <div class="nav-item" onclick="window.location.href='/admin_services'">Services</div>
     <div class="nav-item" onclick="window.location.href='/admin_feedback'">Feedbacks</div>
-    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Announcement</div>
+    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Session Agenda</div>
     <div class="nav-item" onclick="window.location.href='/admin_attendance'">Attendance</div>
     <div class="nav-item" onclick="window.location.href='/admin_promanage'">Project Management</div>
+    <div class="nav-item" onclick="window.location.href='/admin_staff_account'">Staff Account Management</div>
+    <div class="nav-item" onclick="window.location.href='/admin_minutesmaker'">Minutes Maker</div>
   </div>
 
   <!-- User Profile -->
@@ -98,6 +100,8 @@
 
     <!-- Generate PDF Button -->
     <button class="btn btn-primary btn-generate-report" onclick="generateReport()">Generate Report</button>
+    <!-- Print Report Button -->
+    <button class="btn btn-secondary btn-print-report" onclick="printReport()">Print Report</button>
   </div>
 
   <!-- Firebase SDK -->
@@ -327,6 +331,75 @@
   pdfMake.createPdf(docDefinition).download('project_management_report.pdf');
 }
 
+function printReport() {
+  // Create a new window for printing
+  const printWindow = window.open('', '_blank');
+  
+  // Generate the report content
+  const reportContent = `
+    <html>
+      <head>
+        <title>Project Management Report</title>
+        <style>
+          body { font-family: Arial, sans-serif; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+          th { background-color: #f2f2f2; }
+        </style>
+      </head>
+      <body>
+        <h1>Project Management Report</h1>
+        <p>Generated on: ${new Date().toLocaleDateString()}</p>
+        
+        <h2>Project Management</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Project Name</th>
+              <th>Budget Allocation</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${Array.from(document.querySelectorAll('#projectsTable tbody tr')).map(row => `
+              <tr>
+                <td>${row.cells[0].textContent}</td>
+                <td>${row.cells[1].textContent}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+        
+        <h2>Ordinance and Resolution Statistics</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Month</th>
+              <th>Ordinances</th>
+              <th>Resolutions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((month, index) => `
+              <tr>
+                <td>${month}</td>
+                <td>${barChart.data.datasets[0].data[index]}</td>
+                <td>${barChart.data.datasets[1].data[index]}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+    </html>
+  `;
+  
+  // Write the content to the new window
+  printWindow.document.write(reportContent);
+  printWindow.document.close();
+  
+  // Print the window
+  printWindow.print();
+}
+
   </script>
 
 <style>
@@ -411,8 +484,10 @@
     height: auto;
   }
 
-  .btn-generate-report {
+  .btn-generate-report,
+  .btn-print-report {
     margin-top: 20px;
+    margin-right: 10px;
   }
   #pieChartOrdinance,
 #pieChartResolution {
@@ -435,6 +510,5 @@ max-width: 70%;
 margin-left: 15rem;
 }
 </style>
-
 </body>
 </html>

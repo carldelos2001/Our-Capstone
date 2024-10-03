@@ -127,17 +127,18 @@
     <div class="nav-item" onclick="window.location.href='/admin_report'">Reports</div>
     <div class="nav-item" onclick="window.location.href='/admin_services'">Services</div>
     <div class="nav-item" onclick="window.location.href='/admin_feedback'">Feedbacks</div>
-    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Announcement</div>
+    <div class="nav-item" onclick="window.location.href='/admin_announcement'">Session Agenda</div>
     <div class="nav-item" onclick="window.location.href='/admin_attendance'">Attendance</div>
     <div class="nav-item" onclick="window.location.href='/admin_promanage'">Project Management</div>
+    <div class="nav-item" onclick="window.location.href='/admin_staff_account'">Staff Account Management</div>
+    <div class="nav-item" onclick="window.location.href='/admin_minutesmaker'">Minutes Maker</div>
+    <!-- User Profile -->
+    <div class="user-profile">
+      <img src="{% static 'user_profile.png' %}" alt="User Profile">
+      <span class="ms-2">User Name</span>
+    </div>
   </div>
 
-  <!-- User Profile -->
-  <div class="user-profile">
-    <img src="{% static 'user_profile.png' %}" alt="User Profile">
-    <span class="ms-2">User Name</span>
-  </div>
-  
   <!-- Main Content -->
   <div class="main-content">
     <!-- Charts Section -->
@@ -185,12 +186,29 @@
         </tbody>
       </table>
     </div>
-  </div>
 
-  <!-- Firebase SDK -->
+    <!-- Modal for document preview -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="previewModalLabel">Document Preview</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <iframe id="previewFrame" width="100%" height="500px" frameborder="0"></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+
   <script type="module">
+    // Import Firebase only once
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js";
+    import { getDatabase, ref, get, remove, onValue } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-database.js";
+    import { getStorage, ref as storageRef, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.9.1/firebase-storage.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAMwvUHsWFkTmJyfzuh4DxzOrMYEjcXHvI",
@@ -203,10 +221,10 @@
       measurementId: "G-F84YQS756S"
     };
 
-
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
+    const storage = getStorage(app);
     
     // Function to parse the month from a date string (YYYY-MM-DD)
     function getMonthFromDate(dateStr) {
@@ -214,8 +232,8 @@
       return date.getMonth(); // Returns 0 for January, 1 for February, etc.
     }
 
-     // Fetch and Update Bar Chart Data
-     function fetchBarChartData() {
+    // Modify fetchBarChartData function
+    function fetchBarChartData() {
       const ordinancesRef = ref(db, 'ordinances');
       const resolutionsRef = ref(db, 'resolutions');
 
@@ -224,24 +242,21 @@
           const ordinancesData = ordinancesSnapshot.val() || {};
           const resolutionsData = resolutionsSnapshot.val() || {};
 
-          const ordinanceCounts = new Array(12).fill(0); // Initialize counts for ordinances by month
-          const resolutionCounts = new Array(12).fill(0); // Initialize counts for resolutions by month
+          const ordinanceCounts = new Array(12).fill(0);
+          const resolutionCounts = new Array(12).fill(0);
 
-          // Process each ordinance and increment the count for the month it was approved
           Object.values(ordinancesData).forEach(ordinance => {
             const monthIndex = getMonthFromDate(ordinance.date_approved);
             ordinanceCounts[monthIndex]++;
           });
 
-          // Process each resolution and increment the count for the month it was approved
           Object.values(resolutionsData).forEach(resolution => {
             const monthIndex = getMonthFromDate(resolution.date_approved);
             resolutionCounts[monthIndex]++;
           });
 
-          // Update Bar Chart with both ordinances and resolutions data
-          barChart.data.datasets[0].data = ordinanceCounts; // Update the ordinances dataset
-          barChart.data.datasets[1].data = resolutionCounts; // Update the resolutions dataset
+          barChart.data.datasets[0].data = ordinanceCounts;
+          barChart.data.datasets[1].data = resolutionCounts;
           barChart.update();
         })
         .catch(error => {
@@ -249,7 +264,7 @@
         });
     }
 
-        // Fetch and Update Pie Chart Data
+    // Modify fetchPieChartData function
     function fetchPieChartData() {
       const ordinancesRef = ref(db, 'ordinances');
       const resolutionsRef = ref(db, 'resolutions');
@@ -259,11 +274,9 @@
           const ordinancesData = ordinancesSnapshot.val() || {};
           const resolutionsData = resolutionsSnapshot.val() || {};
 
-          // Count ordinances and resolutions
           const ordinanceCount = Object.keys(ordinancesData).length;
           const resolutionCount = Object.keys(resolutionsData).length;
 
-          // Update Pie Chart
           pieChart.data.datasets[0].data = [ordinanceCount, resolutionCount];
           pieChart.update();
         })
@@ -272,7 +285,7 @@
         });
     }
 
-    // Fetch Chart Data on Page Load
+    // Call these functions when the DOM is loaded
     document.addEventListener('DOMContentLoaded', () => {
       fetchBarChartData();
       fetchPieChartData();
@@ -289,10 +302,7 @@
           const ordinancesData = ordinancesSnapshot.val() || {};
           const resolutionsData = resolutionsSnapshot.val() || {};
 
-          // Combine both ordinances and resolutions into a single dataset
           window.allData = { ...ordinancesData, ...resolutionsData };
-
-          // Display all data initially
           displayResults(window.allData);
         })
         .catch((error) => {
@@ -303,18 +313,18 @@
     // Display results in the table
     function displayResults(data) {
       const resultsContainer = document.getElementById('results-container');
-      resultsContainer.innerHTML = ''; // Clear previous results
+      resultsContainer.innerHTML = '';
 
-      Object.values(data).forEach((item) => {
+      Object.entries(data).forEach(([key, item]) => {
         const row = `
-          <tr>
+          <tr id="row-${key}">
             <td>${item.title || 'No Title'}</td>
             <td>${item.author || 'No Author'}</td>
             <td>${item.date_approved || 'No Date'}</td>
             <td>
-              <a href="${item.document_url || '#'}" class="btn btn-primary btn-sm">View</a>
-              <button class="btn btn-danger btn-sm" onclick="deleteItem('${item.id}')">Delete</button>
-              <a href="${item.document_url || '#'}" class="btn btn-info btn-sm">Open</a>
+              <button class="btn btn-primary btn-sm" onclick="previewDocument('${item.document_url}')">View</button>
+              <button class="btn btn-danger btn-sm" onclick="confirmDelete('${key}', '${item.file_type}')">Delete</button>
+              <button class="btn btn-info btn-sm" onclick="downloadDocument('${item.document_url}')">Open</button>
             </td>
           </tr>
         `;
@@ -322,37 +332,48 @@
       });
     }
 
-     // Dynamic Search Functionality
-  function dynamicSearch() {
-    const query = document.getElementById('search-box').value.toLowerCase();
-    const filteredData = {};
+    // Preview document
+    window.previewDocument = function(url) {
+      const previewFrame = document.getElementById('previewFrame');
+      previewFrame.src = url;
+      const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+      previewModal.show();
+    }
 
-    // Filter based on title, author, or date_approved
-    Object.keys(window.allData).forEach((key) => {
-      const item = window.allData[key];
-      if (
-        (item.title && item.title.toLowerCase().includes(query)) ||
-        (item.author && item.author.toLowerCase().includes(query)) ||
-        (item.date_approved && item.date_approved.toLowerCase().includes(query))
-      ) {
-        filteredData[key] = item;
+    // Confirm before deletion
+    window.confirmDelete = function(id, fileType) {
+      if (confirm('Are you sure you want to delete this project?')) {
+        deleteItem(id, fileType);
       }
-    });
+    }
 
-    // Display filtered results
-    displayResults(filteredData);
-  }
+    // Delete item from Firebase
+    function deleteItem(id, fileType) {
+      const itemRef = ref(db, `${fileType}s/${id}`);
 
-  // Add an event listener for the input event on the search box
-  document.getElementById('search-box').addEventListener('input', dynamicSearch);
+      remove(itemRef)
+        .then(function() {
+          alert('Project deleted successfully!');
+          document.getElementById(`row-${id}`).remove();
+          fetchBarChartData();
+          fetchPieChartData();
+        })
+        .catch(function(error) {
+          console.error('Error deleting project:', error);
+        });
+    }
 
+    // Download document
+    window.downloadDocument = function(url) {
+      window.open(url, '_blank');
+    }
 
-    // Search Functionality
-    function search() {
+    // Dynamic Search Functionality
+    function dynamicSearch() {
       const query = document.getElementById('search-box').value.toLowerCase();
       const filteredData = {};
-      Object.keys(window.allData).forEach((key) => {
-        const item = window.allData[key];
+
+      Object.entries(window.allData).forEach(([key, item]) => {
         if (
           (item.title && item.title.toLowerCase().includes(query)) ||
           (item.author && item.author.toLowerCase().includes(query)) ||
@@ -361,48 +382,15 @@
           filteredData[key] = item;
         }
       });
+
       displayResults(filteredData);
     }
 
-    document.getElementById('search-button').addEventListener('click', search);
+    document.getElementById('search-box').addEventListener('input', dynamicSearch);
 
-    // Confirm before deletion
-  function confirmDelete(id) {
-    const isConfirmed = confirm("Are you sure you want to delete this item?");
-    
-    if (isConfirmed) {
-      deleteItem(id);
-    }
-  }
-
-  // Delete item from Firebase
-  function deleteItem(id) {
-    // Assuming items can be ordinances or resolutions, try deleting from both
-    const ordinancesRef = ref(db, `ordinances/${id}`);
-    const resolutionsRef = ref(db, `resolutions/${id}`);
-
-    // Delete from ordinances if it exists there
-    remove(ordinancesRef)
-      .then(() => {
-        console.log(`Ordinance with ID ${id} deleted.`);
-        document.getElementById(`row-${id}`).remove(); // Remove from UI
-      })
-      .catch((error) => {
-        console.error('Ordinance not found, trying resolution...');
-        // Try deleting from resolutions
-        remove(resolutionsRef)
-          .then(() => {
-            console.log(`Resolution with ID ${id} deleted.`);
-            document.getElementById(`row-${id}`).remove(); // Remove from UI
-          })
-          .catch((error) => {
-            console.error('Error deleting item:', error);
-          });
-      });
-  }
+    document.getElementById('search-button').addEventListener('click', dynamicSearch);
 
     // Bar Chart Initialization
-    // Bar Chart
     const barChartContext = document.getElementById('barChart').getContext('2d');
     const barChart = new Chart(barChartContext, {
       type: 'bar',
@@ -411,14 +399,14 @@
         datasets: [
           {
             label: 'Ordinances',
-            data: [], // Data will be updated dynamically
+            data: [],
             backgroundColor: '#52AE77FF', 
             borderColor: '#52AE77FF',
             borderWidth: 1
           },
           {
             label: 'Resolutions',
-            data: [], // Data will be updated dynamically
+            data: [],
             backgroundColor: '#009DCF', 
             borderColor: '#009DCF',
             borderWidth: 1
@@ -443,7 +431,7 @@
         datasets: [
           {
             label: 'Published',
-            data: [], // Data will be updated dynamically
+            data: [],
             backgroundColor: [
               '#52AE77FF', 
               '#009DCF'       
